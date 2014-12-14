@@ -365,10 +365,10 @@ def main():
                 continue
             task = todolist[ID].copy()
             update_by({ID: task}, [ID], 1)
-            p = os.popen('%s %s %s %s ' % (todolist[ID]["script"],
-                                           todolist[ID]["progress"],
-                                           todolist[ID]["limit"],
-                                           todolist[ID]["script_args"]))
+            p = os.popen('%s %s %s %s ' % (task["script"],
+                                           task["progress"],
+                                           task["limit"],
+                                           task["script_args"]))
             if p.close() is None:
                 update_by(todolist, [ID], 1)
 
