@@ -45,6 +45,7 @@ Smith relies on the EDITOR global variable to edit files
 VERSION=0.1
 
 import os
+import re
 import sys
 import json
 import time
@@ -82,14 +83,15 @@ def show_tasks(todolist, IDs, *, compact=False, color=False, verbose=False):
 
     if verbose:
         if not compact:
-            print_fmt = '\n'.join(("[{ID_col}{ID}{default}] {title}\t{bar} "
-                                   "{progress}/{limit}",
-                                   "{script_p}{script}",
-                                   "{script_args_p}{script_args}",
-                                   "{comment_p}{comment}"))
+            print_fmt = ( "[{ID_col}{ID}{default}] {title}\t{bar} "
+                        + "{progress}/{limit}\n"
+                        + "{script_p}{script}\n"
+                        + "{script_args_p}{script_args}\n"
+                        + "{comment_p}{comment}\n")
+
             script_p      = "Script: "
             script_args_p = "Args: "
-            comment_p     = ""
+            comment_p     = "Comment: "
 
         if compact:
             print_fmt = ("{ID_col}{ID}{default}: {title} {progress}/{limit}"
@@ -103,7 +105,7 @@ def show_tasks(todolist, IDs, *, compact=False, color=False, verbose=False):
     for ID in IDs:
         task = todolist[ID]
 
-        print(print_fmt.format(
+        print(re.sub("\n+", "\n", print_fmt.format(
                 ID            = ID,
                 ID_col        = COLOR["yellow"]  if color else "",
                 default       = COLOR["default"] if color else "",
@@ -117,7 +119,7 @@ def show_tasks(todolist, IDs, *, compact=False, color=False, verbose=False):
                 script_p      = script_p      if task["script"]      else "",
                 script_args_p = script_args_p if task["script_args"] else "",
                 comment_p     = comment_p     if task["comment"]     else ""
-                ).strip("\n"))
+            )))
 
 
 def bar(progress, limit, color=False, width=52):
@@ -128,15 +130,17 @@ def bar(progress, limit, color=False, width=52):
             col = "red"
         elif ratio <= 0.66:
             col = "yellow"
-        else:
+        elif ratio < 1:
             col = "green"
+        else:
+            col = "magenta"
     else:
         col = "default"
 
-    return ("[%s%s%s]" % (COLOR[col],
-                          "#" * math.floor(ratio * width),
-                          COLOR["default"]
-                         )).ljust(width)
+    return "[%s%s%s]" % (COLOR[col],
+                         ("#" * math.floor(ratio * width)).ljust(width),
+                         COLOR["default"]
+                        )
 
 
 def update_by(todolist, IDs, n):
@@ -155,7 +159,7 @@ def edit_task(todolist, IDs, scripts_dir):
         todolist[ID] = {
                 "title":       "New task",
                 "progress":    0,
-                "limit":       0,
+                "limit":       1,
                 "script":      "",
                 "script_args": "",
                 "comment":     "",
@@ -168,7 +172,6 @@ def edit_task(todolist, IDs, scripts_dir):
             return (input("%s [%s]:" % (att_name.capitalize(), task[att_name]))
                     or task[att_name])
 
-
         print("Editing [%s] %s:" % (ID, task["title"]))
         task["title"]       = set_att("title")
         task["progress"]    = int(set_att("progress"))
@@ -179,7 +182,7 @@ def edit_task(todolist, IDs, scripts_dir):
         task["mtime"]       = time.time()
 
         if task["script"] and '/' not in task["script"]:
-            task["script"] = path.join(scripts_dir, scriptname)
+            task["script"] = path.join(scripts_dir, task["script"])
 
 
 def edit_script(todolist, IDs, scripts_dir):
@@ -209,7 +212,7 @@ def edit_script(todolist, IDs, scripts_dir):
 
 def new_id():
     # Yes, this is ugly. Deal with it.
-    return hex(int(str(time.time()).replace('.', '')[:-4]))[2:].ljust(11, '0')
+    return hex(int(str(time.time()).replace('.', '')[:-4]))[2:].rjust(11, '0')
 
 def import_data(todolist, input_file):
     if input_file == '-':
@@ -265,12 +268,14 @@ def select_IDs(todolist, ID_request):
     if 'recent' in ID_request:
         lst = list(todolist.keys())
         lst.sort(key=lambda x: todolist[x]["mtime"])
+        lst.reverse()
         for each in lst[:5]:
             append(each, IDs)
 
     if 'last' in ID_request:
         lst = list(todolist.keys())
         lst.sort(key=lambda x: todolist[x]["mtime"])
+        lst.reverse()
         append(lst[0], IDs)
 
     if 'finished' in ID_request:
@@ -302,10 +307,10 @@ def main():
     with open(list_file) as f:
         todolist = json.load(f)
 
-    if not [ True for x in args if x ]:  # if called without option or argument
-        args["ID"] = ["recent"]
-    elif args["ID"] is None:
-        args["ID"] = ["last"]
+    # if called without option or argument (except --color)
+    if not [ True for x in args if args[x] and x != "--color"]:
+        args["--show"] = True
+        args["ID"]     = ["recent"]
 
     IDs = select_IDs(todolist, args["ID"])
 
@@ -320,7 +325,8 @@ def main():
 
     if args["--remove"]:
         for ID in IDs:
-            todolist.remove(ID)
+            todolist.pop(ID)
+        IDs = []
 
     if args["--task"]:
         edit_task(todolist, IDs, scripts_dir)
