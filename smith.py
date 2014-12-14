@@ -28,7 +28,7 @@ Options:
     -i, --import FILE       Read from a file the tasks to be added
                             If FILE is - then read from stdin
     -o, --export            Prints raw json task data to stdout
-    -u, --increment         Increments the task's progress by
+    -u, --update            Increments the task's progress by
     -U, --update-by N       Updates the task's progress by N
     -f, --file FILE         Use FILE to load and save the todolist
                             Default is ~/.config/smith/todolist
@@ -48,10 +48,7 @@ import math
 import subprocess
 from os import path
 from docopt import docopt
-
-
-def import_data(path):
-    ...
+from functools import reduce
 
 
 def show_tasks(todolist, IDs, *, compact=False, color=False):
@@ -71,6 +68,15 @@ def show_tasks(todolist, IDs, *, compact=False, color=False):
 
 def bar(progress, limit, *, width=40):
     return "[%s]" % ("#" * math.floor(progress/limit*width)).ljust(width)
+
+
+def update_by(todolist, IDs, n):
+    for ID in IDs:
+        task = todolist[ID]
+        task["progress"] += int(n)
+
+        if task["progress"] > task["limit"]:
+            task["progress"] = task["limit"]
 
 
 def edit_task(todolist, IDs, scripts_dir):
@@ -172,7 +178,7 @@ def select_IDs(todolist, ID_request):
     IDs = []
 
     for ID in ID_request:
-        if ID not in ("all", "recent", "finished", "virgins"):
+        if ID not in ("all", "recent", "last", "finished", "virgins"):
             append(ID, IDs)
 
             if ID not in todolist:
@@ -223,17 +229,30 @@ def main():
     with open(list_file) as f:
         todolist = json.load(f)
 
-    if args["--show"] or args["--show-short"] and args["ID"] is None:
+    if not [ True for x in args if x ]:  # if called without option or argument
         args["ID"] = ["recent"]
+    elif args["ID"] is None:
+        args["ID"] = ["last"]
+
     IDs = select_IDs(todolist, args["ID"])
 
     if args["--import"]:
-        for ID,value in import_data(args["--import"]):
+        if args["--import"] == '-':
+            ifile = sys.stdin
+        else:
+            ifile = open(path.expanduser(args["--import"]))
+
+        for ID,value in json.load(ifile):
             todolist[ID] = value
 
+        if ifile is not sys.stdin:
+            ifile.close()
+
+    if args["--update"]:
+        update_by(todolist, IDs, 1)
+
     if args["--update-by"]:
-        for ID in IDs:
-            todolist[ID]["progress"] += int(args["--update-by"])
+        update_by(todolist, IDs, args["--update-by"])
 
     if args["--remove"]:
         for ID in IDs:
