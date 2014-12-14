@@ -13,8 +13,9 @@ Arguments:
             ID supports special keywords:
                 all         all tasks
                 finished    all finished tasks
-                recent      the five last updated tasks
                 virgins     all tasks with no progress at all
+                recent      the five last updated tasks
+                last        the last updated task
 
 Options:
     -s, --show              Show tasks
@@ -27,7 +28,8 @@ Options:
     -i, --import FILE       Read from a file the tasks to be added
                             If FILE is - then read from stdin
     -o, --export            Prints raw json task data to stdout
-    -u, --update-by N       Updates the task's progress by N
+    -u, --increment         Increments the task's progress by
+    -U, --update-by N       Updates the task's progress by N
     -f, --file FILE         Use FILE to load and save the todolist
                             Default is ~/.config/smith/todolist
     -D, --script-dir DIR    Looks in DIR to find scripts
@@ -42,6 +44,7 @@ import os
 import sys
 import json
 import time
+import math
 import subprocess
 from os import path
 from docopt import docopt
@@ -53,7 +56,7 @@ def import_data(path):
 
 def show_tasks(todolist, IDs, *, compact=False, color=False):
     if not compact:
-        print_fmt = "[{ID}] {title} {bar} {progress}/{limit}"
+        print_fmt = "[{ID}] {title}\t{bar} {progress}/{limit}"
     else:
         print_fmt = "{ID}: {title} {progress}/{limit}"
 
@@ -67,7 +70,7 @@ def show_tasks(todolist, IDs, *, compact=False, color=False):
 
 
 def bar(progress, limit, *, width=40):
-    return "[%s]" + ("#" * math.floor(progress/limit)).ljust(width)
+    return "[%s]" % ("#" * math.floor(progress/limit*width)).ljust(width)
 
 
 def edit_task(todolist, IDs, scripts_dir):
@@ -81,15 +84,15 @@ def edit_task(todolist, IDs, scripts_dir):
                 "script":      "",
                 "script_args": "",
                 "comment":     "",
-                "mtime":       0
-                }
-
-    def set_att(task, att_name):
-        return (input("%s [%s]:" % (att_name.capitalize(), task[att_name]))
-                or task[att_name])
+                "mtime":       0}
 
     for ID in IDs:
         task = todolist[ID]
+
+        def set_att(att_name):
+            return (input("%s [%s]:" % (att_name.capitalize(), task[att_name]))
+                    or task[att_name])
+
 
         print("Editing [%s] %s:" % (ID, task["title"]))
         task["title"]       = set_att("title")
@@ -100,14 +103,18 @@ def edit_task(todolist, IDs, scripts_dir):
         task["comment"]     = set_att("comment")
         task["mtime"]       = time.time()
 
+        if task["script"] and '/' not in task["script"]:
+            task["script"] = path.join(scripts_dir, scriptname)
 
 
 def edit_script(todolist, IDs, scripts_dir):
     for ID in IDs:
         if not todolist[ID]["script"]:
             scriptname = input("Select a name for the script: ")
+            if not scriptname:
+                return
             if '/' not in scriptname:
-                scriptname = path.join(smith_dir, scriptname)
+                scriptname = path.join(scripts_dir, scriptname)
 
             todolist[ID]["script"] = scriptname
 
@@ -148,7 +155,8 @@ def mkconfigdir(dir_path):
     if not path.exists(todolist_path):
         open(todolist_path, "w")
 
-    json.dump("{}", open(todolist_path, "w"))
+    if not open(todolist_path).read():
+        json.dump(dict(), open(todolist_path, "w"))
 
     if not path.exists(scripts_path):
         os.mkdir(scripts_path)
@@ -164,20 +172,26 @@ def select_IDs(todolist, ID_request):
     IDs = []
 
     for ID in ID_request:
-        if todolist[ID]:
+        if ID not in ("all", "recent", "finished", "virgins"):
             append(ID, IDs)
-        elif ID not in ("all", "recent", "finished", "virgins"):
-            print("No task with ID %s: ignoring" % ID, file=sys.stderr)
+
+            if ID not in todolist:
+                print("No task with ID %s: ignoring" % ID, file=sys.stderr)
 
     if 'all' in ID_request:
-        for i in todolist.keys():
+        for i in todolist:
             append(i, IDs)
 
     if 'recent' in ID_request:
-        lst = todolist.keys()
-        lst.sort(key=lambda x: x["mtime"]) # sort by modification time
+        lst = list(todolist.keys())
+        lst.sort(key=lambda x: todolist[x]["mtime"])
         for each in lst[:5]:
-            append(i, IDs)
+            append(each, IDs)
+
+    if 'last' in ID_request:
+        lst = list(todolist.keys())
+        lst.sort(key=lambda x: todolist[x]["mtime"])
+        append(lst[0], IDs)
 
     if 'finished' in ID_request:
         for i in todolist.keys():
@@ -209,6 +223,8 @@ def main():
     with open(list_file) as f:
         todolist = json.load(f)
 
+    if args["--show"] or args["--show-short"] and args["ID"] is None:
+        args["ID"] = ["recent"]
     IDs = select_IDs(todolist, args["ID"])
 
     if args["--import"]:
@@ -217,7 +233,7 @@ def main():
 
     if args["--update-by"]:
         for ID in IDs:
-            todolist[ID]["progress"] += args["--update-by"]
+            todolist[ID]["progress"] += int(args["--update-by"])
 
     if args["--remove"]:
         for ID in IDs:
@@ -242,7 +258,9 @@ def main():
         print()
 
     if args["--show"] or args["--show-short"]:
-        show_tasks(todolist, IDs, compact=arg["--show-short"])
+        show_tasks(todolist, IDs, compact=args["--show-short"])
+
+    json.dump(todolist, open(list_file, "w"))
 
 
 if __name__ == "__main__":
