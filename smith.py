@@ -199,6 +199,8 @@ def edit_action(todolist, IDs, scripts_dir):
         if not path.exists(todolist[ID]["script"]):
             with open(todolist[ID]["script"], "w") as f:
                 f.write('\n'.join([
+                    "#!/bin/sh",
+                    "#",
                     "# [%s] %s" % (ID, todolist[ID]["title"]),
                     "# This is a script for the SMITH todolist management tool",
                     "# It is called with the following arguments:",
@@ -208,6 +210,7 @@ def edit_action(todolist, IDs, scripts_dir):
                     ""]))
 
         subprocess.call([os.environ["EDITOR"], todolist[ID]["script"]])
+        os.popen("chmod +x %s" % todolist[ID]["script"])
 
 
 def new_id():
@@ -243,6 +246,12 @@ def mkconfigdir(dir_path):
     if not path.exists(scripts_path):
         os.mkdir(scripts_path)
 
+def sorted_IDs(todolist, key):
+    result = list(todolist.keys())
+    result.sort(key=key)
+    result.reverse()
+    return result
+
 
 def select_IDs(todolist, ID_request):
     if ID_request is None:
@@ -251,40 +260,38 @@ def select_IDs(todolist, ID_request):
     # Function to append elements to a list only if not already in it
     append = lambda x,lst: x in lst or lst.append(x)
 
+    # Sorted list of ids by the key
+
     IDs = []
+    sorted_by_mtime    = sorted_IDs(todolist, lambda x: todolist[x]["mtime"])
+    sorted_by_progress = sorted_IDs(todolist, lambda x: todolist[x]["progress"])
 
     for ID in ID_request:
         # Ugly but needed to preserve explicit arguments priority
         if ID not in ("all", "recent", "last", "finished", "virgins"):
-            append(ID, IDs)
-
-            if ID not in todolist:
-                print("No task with ID %s: ignoring" % ID, file=sys.stderr)
+            if ID in todolist:
+                append(ID, IDs)
+            else:
+                print("No task with ID '%s': ignoring it" % ID, file=sys.stderr)
 
     if 'all' in ID_request:
-        for i in todolist:
+        for i in sorted_by_progress:
             append(i, IDs)
 
     if 'recent' in ID_request:
-        lst = list(todolist.keys())
-        lst.sort(key=lambda x: todolist[x]["mtime"])
-        lst.reverse()
-        for each in lst[:5]:
-            append(each, IDs)
+        for i in sorted_by_mtime[:5]:
+            append(i, IDs)
 
     if 'last' in ID_request:
-        lst = list(todolist.keys())
-        lst.sort(key=lambda x: todolist[x]["mtime"])
-        lst.reverse()
-        append(lst[0], IDs)
+        append(sorted_by_mtime[0], IDs)
 
     if 'finished' in ID_request:
-        for i in todolist.keys():
+        for i in sorted_by_progress:
             if todolist[i]["progress"] == todolist[i]["limit"]:
                 append(i, IDs)
 
     if 'virgins' in ID_request:
-        for i in todolist.keys():
+        for i in sorted_by_progress:
             if todolist[i]["progress"] == 0:
                 append(i, IDs)
 
@@ -336,10 +343,10 @@ def main():
 
     if args["--do"]:
         for ID in IDs:
-            p = os.popen(' '.join(todolist[ID]["script"],
-                                  todolist[ID]["progress"],
-                                  todolist[ID]["limit"],
-                                  todolist[ID]["script_args"]))
+            p = os.popen('%s %s %s %s ' % (todolist[ID]["script"],
+                                           todolist[ID]["progress"],
+                                           todolist[ID]["limit"],
+                                           todolist[ID]["script_args"]))
             if p.close() is None:
                 todolist[ID]["progress"] += 1
 
