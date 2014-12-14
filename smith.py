@@ -17,8 +17,8 @@ Arguments:
                 recent      the five last updated tasks
                 finished    all finished tasks
                 virgins     all tasks with no progress at all
-                maxfirst    all tasks, most advanced first
-                minfirst    all tasks, least advanced first
+                byprogress  all tasks, most advanced first
+                bydate      all tasks, by date of creation (more recent first)
 
 Options:
     -s, --show              Show tasks
@@ -38,6 +38,7 @@ Options:
                             Default is ~/.config/smith/scripts/
     -c, --compact           Show tasks in a compact format
     -v, --verbose           Show more details about the tasks
+    -R, --reverse           Reverse the order of the tasks
     -G, --color             Print in color
     -h, --help              Print this help and exit
     -V, --version           Print the version number and exit
@@ -272,6 +273,7 @@ def select_IDs(todolist, ID_request, old_IDs=[]):
     append = lambda x,lst: x in lst or lst.append(x)
 
     IDs = []
+    sorted_by_date     = sorted_IDs(todolist, lambda x: int(x, 16))
     sorted_by_mtime    = sorted_IDs(todolist, lambda x: todolist[x]["mtime"])
     sorted_by_progress = sorted_IDs(todolist,
                         lambda x: todolist[x]["progress"]/todolist[x]["limit"])
@@ -302,15 +304,15 @@ def select_IDs(todolist, ID_request, old_IDs=[]):
                 append(i, IDs)
         ID_request.remove("virgins")
 
-    if 'maxfirst' in ID_request:
+    if 'byprogress' in ID_request:
         for i in sorted_by_progress:
             append(i, IDs)
-        ID_request.remove("maxfirst")
+        ID_request.remove("byprogress")
 
-    if 'minfirst' in ID_request:
-        for i in sorted_by_progress[::-1]:
+    if 'bydate' in ID_request:
+        for i in sorted_by_date:
             append(i, IDs)
-        ID_request.remove("minfirst")
+        ID_request.remove("bydate")
 
     for ID in ID_request:
         if ID in todolist:
@@ -351,8 +353,15 @@ def main():
     if path.exists(tmp_ids_file):
         old_IDs = json.load(open(tmp_ids_file))
 
+    if not args["ID"] and (args["--show"] or args["--compact"]):
+        args["ID"] = ["recent"]
+
     IDs = select_IDs(todolist, args["ID"], old_IDs)
 
+
+
+    if args["--reverse"]:
+        IDs.reverse()
 
     if args["--import"]:
         import_data(todolist, args["--import"])
@@ -393,9 +402,6 @@ def main():
         print()
 
     if args["--show"] or args["--compact"]:
-        if not IDs:
-            IDs = select_IDs(todolist, ["recent"])
-
         show_tasks(todolist, IDs, old_IDs,
                    compact=args["--compact"],
                    color=args["--color"],

@@ -11,19 +11,25 @@ with tasks, that way you can automatically launch your media player to see the
 next cat video on your watchlist, open your mail client well configured to
 answer that mail from your boss and more...
 
+Edition commands use the EDITOR environnement variable.
+
 Documentation
 =============
 
 Usage: smith [options] [ID...]
 
 Arguments:
-    ID      A tasks ID
+    ID      A tasks IDbe it a unique ID or a
+            position number relative to the last command
+
             ID supports special keywords:
                 all         all tasks
+                last        the last updated task
+                recent      the five last updated tasks
                 finished    all finished tasks
                 virgins     all tasks with no progress at all
-                recent      the five last updated tasks
-                last        the last updated task
+                byprogress  all tasks, most advanced first
+                bydate      all tasks, by date of creation (more recent first)
 
 Options:
     -s, --show              Show tasks
@@ -43,6 +49,7 @@ Options:
                             Default is ~/.config/smith/scripts/
     -c, --compact           Show tasks in a compact format
     -v, --verbose           Show more details about the tasks
+    -R, --reverse           Reverse the order of the tasks
     -G, --color             Print in color
     -h, --help              Print this help and exit
     -V, --version           Print the version number and exit
