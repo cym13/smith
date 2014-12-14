@@ -76,14 +76,14 @@ def show_tasks(todolist, IDs, *, compact=False, color=False, verbose=False):
 
         if not compact:
             print_fmt = ("[{ID_col}{ID}{default}] "
-                         "{title}\t{bar} "
+                         "{title:<30}\t{bar} "
                          "{progress}/{limit}")
         if compact:
             print_fmt = "{ID_col}{ID}{default}: {title} {progress}/{limit}"
 
     if verbose:
         if not compact:
-            print_fmt = ( "[{ID_col}{ID}{default}] {title}\t{bar} "
+            print_fmt = ( "[{ID_col}{ID}{default}] {title:<30}\t{bar} "
                         + "{progress}/{limit}\n"
                         + "{script_p}{script}\n"
                         + "{script_args_p}{script_args}\n"
@@ -122,8 +122,8 @@ def show_tasks(todolist, IDs, *, compact=False, color=False, verbose=False):
             )))
 
 
-def bar(progress, limit, color=False, width=52):
-    ratio  = progress/limit
+def bar(progress, limit, color=False, width=30):
+    ratio      = progress/limit
 
     if color:
         if ratio <= 0.33:
@@ -133,7 +133,7 @@ def bar(progress, limit, color=False, width=52):
         elif ratio < 1:
             col = "green"
         else:
-            col = "magenta"
+            col = "cyan"
     else:
         col = "default"
 
@@ -260,8 +260,6 @@ def select_IDs(todolist, ID_request):
     # Function to append elements to a list only if not already in it
     append = lambda x,lst: x in lst or lst.append(x)
 
-    # Sorted list of ids by the key
-
     IDs = []
     sorted_by_mtime    = sorted_IDs(todolist, lambda x: todolist[x]["mtime"])
     sorted_by_progress = sorted_IDs(todolist, lambda x: todolist[x]["progress"])
@@ -355,6 +353,9 @@ def main():
         print()
 
     if args["--show"] or args["--compact"]:
+        if not IDs:
+            IDs = select_IDs(todolist, ["recent"])
+
         show_tasks(todolist, IDs,
                    compact=args["--compact"],
                    color=args["--color"],
