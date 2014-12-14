@@ -39,6 +39,7 @@ Smith relies on the EDITOR global variable to edit files
 import os
 import sys
 import json
+import subprocess
 from os import path
 from docopt import docopt
 
@@ -51,12 +52,39 @@ def show_tasks(todolist, IDs, *, compact=False):
     ...
 
 
-def edit_task(todolist, IDs):
+def edit_task(todolist, IDs, scripts_dir):
     ...
 
 
-def timestamp_to_id(timestamp):
-    ...
+def edit_script(todolist, IDs, scripts_dir):
+    for ID in IDs:
+        if not todolist[ID]["script"]:
+            scriptname = input("Select a name for the script: ")
+            if '/' not in scriptname:
+                scriptname = path.join(smith_dir, scriptname)
+
+            todolist[ID]["script"] = scriptname
+
+        if not path.exists(todolist[ID]["script"]):
+            with open(todolist[ID]["script"], "w") as f:
+                f.write('\n'.join([
+                    "# [%s] %s" % (ID, todolist[ID]["title"]),
+                    "# This is a script for the SMITH todolist management tool",
+                    "# It is called with the following arguments:",
+                    "#      the current progress of the task",
+                    "#      the limit set for the task",
+                    "#      the argument field of the task",
+                    ""]))
+
+        subprocess.Popen([os.environ["EDITOR"], todolist[ID]["script"]])
+
+
+def convert_id_timestamp(ID):
+    if typeof(ID) is int:
+        return 't' + hex(timestamp)[2:]
+
+    if ID.startswith('t'):
+        return int(ID[1:], 16)
 
 
 def mkconfigdir(dir_path):
@@ -102,12 +130,12 @@ def select_IDs(todolist, ID_request):
 
     if 'finished' in ID_request:
         for i in todolist.keys():
-            if todolist[i].progress == todolist[i].limit:
+            if todolist[i]["progress"] == todolist[i]["limit"]:
                 append(i, IDs)
 
     if 'virgins' in ID_request:
         for i in todolist.keys():
-            if todolist[i].progress == 0:
+            if todolist[i]["progress"] == 0:
                 append(i, IDs)
 
     return IDs
@@ -138,25 +166,25 @@ def main():
 
     if args["--update-by"]:
         for ID in IDs:
-            todolist[ID].progress += args["--update-by"]
+            todolist[ID]["progress"] += args["--update-by"]
 
     if args["--remove"]:
         for ID in IDs:
             todolist.remove(ID)
 
     if args["--task"]:
-        edit_task(IDs)
+        edit_task(todolist, IDs, scripts_dir)
 
     if args["--action"]:
-        edit_action(IDs)
+        edit_action(todolist, IDs, scripts_dir)
 
     if args["--do"]:
         for ID in IDs:
-            p = os.popen(' '.join(todolist[ID].script,
-                                  todolist[ID].progress,
-                                  todolist[ID].limit))
+            p = os.popen(' '.join(todolist[ID]["script"],
+                                  todolist[ID]["progress"],
+                                  todolist[ID]["limit"]))
             if p.close() is None:
-                todolist[ID].progress += 1
+                todolist[ID]["progress"] += 1
 
     if args["--export"]:
         json.dump({ x:todolist[x] for x in IDs }, sys.stdout)
