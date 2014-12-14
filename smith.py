@@ -185,7 +185,7 @@ def edit_task(todolist, IDs, scripts_dir):
             task["script"] = path.join(scripts_dir, task["script"])
 
 
-def edit_script(todolist, IDs, scripts_dir):
+def edit_action(todolist, IDs, scripts_dir):
     for ID in IDs:
         if not todolist[ID]["script"]:
             scriptname = input("Select a name for the script: ")
@@ -207,7 +207,7 @@ def edit_script(todolist, IDs, scripts_dir):
                     "#      the argument field of the task",
                     ""]))
 
-        subprocess.Popen([os.environ["EDITOR"], todolist[ID]["script"]])
+        subprocess.call([os.environ["EDITOR"], todolist[ID]["script"]])
 
 
 def new_id():
