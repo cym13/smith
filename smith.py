@@ -45,7 +45,7 @@ Options:
 Smith relies on the EDITOR global variable to edit files
 """
 
-VERSION="1.0.1"
+VERSION="1.0.2"
 
 import os
 import re
@@ -180,7 +180,7 @@ def edit_task(todolist, IDs, scripts_dir):
         task = todolist[ID]
 
         def set_att(att_name):
-            return (input("%s [%s]:" % (att_name.capitalize(), task[att_name]))
+            return (input("%s [%s]: " % (att_name.capitalize(), task[att_name]))
                     or task[att_name])
 
         print("Editing [%s] %s:" % (ID, task["title"]))
