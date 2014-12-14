@@ -151,6 +151,8 @@ def update_by(todolist, IDs, n):
         if task["progress"] > task["limit"]:
             task["progress"] = task["limit"]
 
+        task["mtime"] = time.time()
+
 
 def edit_task(todolist, IDs, scripts_dir):
     if not IDs:
@@ -262,7 +264,8 @@ def select_IDs(todolist, ID_request):
 
     IDs = []
     sorted_by_mtime    = sorted_IDs(todolist, lambda x: todolist[x]["mtime"])
-    sorted_by_progress = sorted_IDs(todolist, lambda x: todolist[x]["progress"])
+    sorted_by_progress = sorted_IDs(todolist,
+                        lambda x: todolist[x]["progress"]/todolist[x]["limit"])
 
     for ID in ID_request:
         # Ugly but needed to preserve explicit arguments priority
@@ -346,7 +349,7 @@ def main():
                                            todolist[ID]["limit"],
                                            todolist[ID]["script_args"]))
             if p.close() is None:
-                todolist[ID]["progress"] += 1
+                update_by(todolist, [ID], 1)
 
     if args["--export"]:
         json.dump({ x:todolist[x] for x in IDs }, sys.stdout)
