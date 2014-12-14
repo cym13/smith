@@ -46,7 +46,7 @@ Options:
 Smith relies on the EDITOR global variable to edit files
 """
 
-VERSION=0.1
+VERSION=0.9
 
 import os
 import re
