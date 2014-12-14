@@ -19,7 +19,6 @@ Arguments:
 
 Options:
     -s, --show              Show tasks
-    -S, --show-short        Show tasks in a compact format
     -t, --task              Create or edit a task
     -a, --action            Add or edit a task's action
     -r, --remove            Remove a task
@@ -34,11 +33,16 @@ Options:
                             Default is ~/.config/smith/todolist
     -D, --script-dir DIR    Looks in DIR to find scripts
                             Default is ~/.config/smith/scripts/
+    -c, --compact           Show tasks in a compact format
+    -v, --verbose           Show more details about the tasks
+    -G, --color             Print in color
     -h, --help              Print this help and exit
     -V, --version           Print the version number and exit
 
 Smith relies on the EDITOR global variable to edit files
 """
+
+VERSION=0.1
 
 import os
 import sys
@@ -51,23 +55,88 @@ from docopt import docopt
 from functools import reduce
 
 
-def show_tasks(todolist, IDs, *, compact=False, color=False):
-    if not compact:
-        print_fmt = "[{ID}] {title}\t{bar} {progress}/{limit}"
-    else:
-        print_fmt = "{ID}: {title} {progress}/{limit}"
+# ANSI colors
+COLOR = {"black":   "\033[30m",
+         "red":     "\033[31m",
+         "green":   "\033[32m",
+         "yellow":  "\033[33m",
+         "blue":    "\033[34m",
+         "magenta": "\033[35m",
+         "cyan":    "\033[36m",
+         "white":   "\033[37m",
+         "default": "\033[00m"}
+
+
+def show_tasks(todolist, IDs, *, compact=False, color=False, verbose=False):
+    if not verbose:
+        script_p      = ""
+        script_args_p = ""
+        comment_p     = ""
+
+        if not compact:
+            print_fmt = ("[{ID_col}{ID}{default}] "
+                         "{title}\t{bar} "
+                         "{progress}/{limit}")
+        if compact:
+            print_fmt = "{ID_col}{ID}{default}: {title} {progress}/{limit}"
+
+    if verbose:
+        if not compact:
+            print_fmt = '\n'.join(("[{ID_col}{ID}{default}] {title}\t{bar} "
+                                   "{progress}/{limit}",
+                                   "{script_p}{script}",
+                                   "{script_args_p}{script_args}",
+                                   "{comment_p}{comment}"))
+            script_p      = "Script: "
+            script_args_p = "Args: "
+            comment_p     = ""
+
+        if compact:
+            print_fmt = ("{ID_col}{ID}{default}: {title} {progress}/{limit}"
+                         "{script_p}{script}"
+                         "{script_args_p}{script_args}"
+                         "{comment_p}{comment}")
+            script_p      = " | "
+            script_args_p = " | "
+            comment_p     = " | "
 
     for ID in IDs:
         task = todolist[ID]
-        print(print_fmt.format(ID=ID,
-                              title=task["title"],
-                              bar=bar(task["progress"], task["limit"]),
-                              progress=task["progress"],
-                              limit=task["limit"]))
+
+        print(print_fmt.format(
+                ID            = ID,
+                ID_col        = COLOR["yellow"]  if color else "",
+                default       = COLOR["default"] if color else "",
+                title         = task["title"],
+                bar           = bar(task["progress"], task["limit"], color),
+                progress      = task["progress"],
+                limit         = task["limit"],
+                script        = task["script"],
+                script_args   = task["script_args"],
+                comment       = task["comment"],
+                script_p      = script_p      if task["script"]      else "",
+                script_args_p = script_args_p if task["script_args"] else "",
+                comment_p     = comment_p     if task["comment"]     else ""
+                ).strip("\n"))
 
 
-def bar(progress, limit, *, width=40):
-    return "[%s]" % ("#" * math.floor(progress/limit*width)).ljust(width)
+def bar(progress, limit, color=False, width=52):
+    ratio  = progress/limit
+
+    if color:
+        if ratio <= 0.33:
+            col = "red"
+        elif ratio <= 0.66:
+            col = "yellow"
+        else:
+            col = "green"
+    else:
+        col = "default"
+
+    return ("[%s%s%s]" % (COLOR[col],
+                          "#" * math.floor(ratio * width),
+                          COLOR["default"]
+                         )).ljust(width)
 
 
 def update_by(todolist, IDs, n):
@@ -142,13 +211,17 @@ def new_id():
     # Yes, this is ugly. Deal with it.
     return hex(int(str(time.time()).replace('.', '')[:-4]))[2:].ljust(11, '0')
 
+def import_data(todolist, input_file):
+    if input_file == '-':
+        ifile = sys.stdin
+    else:
+        ifile = open(path.expanduser(input_file))
 
-def convert_id_timestamp(ID):
-    if typeof(ID) is int:
-        return 't' + hex(timestamp)[2:]
+    for ID,value in json.load(ifile):
+        todolist[ID] = value
 
-    if ID.startswith('t'):
-        return int(ID[1:], 16)
+    if ifile is not sys.stdin:
+        ifile.close()
 
 
 def mkconfigdir(dir_path):
@@ -178,6 +251,7 @@ def select_IDs(todolist, ID_request):
     IDs = []
 
     for ID in ID_request:
+        # Ugly but needed to preserve explicit arguments priority
         if ID not in ("all", "recent", "last", "finished", "virgins"):
             append(ID, IDs)
 
@@ -212,9 +286,8 @@ def select_IDs(todolist, ID_request):
     return IDs
 
 
-
 def main():
-    args = docopt(__doc__)
+    args = docopt(__doc__, version=VERSION)
 
     smith_dir   =  path.expanduser("~/.config/smith/")
     list_file   =  args["--file"] or path.join(smith_dir, "todolist")
@@ -237,16 +310,7 @@ def main():
     IDs = select_IDs(todolist, args["ID"])
 
     if args["--import"]:
-        if args["--import"] == '-':
-            ifile = sys.stdin
-        else:
-            ifile = open(path.expanduser(args["--import"]))
-
-        for ID,value in json.load(ifile):
-            todolist[ID] = value
-
-        if ifile is not sys.stdin:
-            ifile.close()
+        import_data(todolist, args["--import"])
 
     if args["--update"]:
         update_by(todolist, IDs, 1)
@@ -268,7 +332,8 @@ def main():
         for ID in IDs:
             p = os.popen(' '.join(todolist[ID]["script"],
                                   todolist[ID]["progress"],
-                                  todolist[ID]["limit"]))
+                                  todolist[ID]["limit"],
+                                  todolist[ID]["script_args"]))
             if p.close() is None:
                 todolist[ID]["progress"] += 1
 
@@ -276,8 +341,11 @@ def main():
         json.dump({ x:todolist[x] for x in IDs }, sys.stdout)
         print()
 
-    if args["--show"] or args["--show-short"]:
-        show_tasks(todolist, IDs, compact=args["--show-short"])
+    if args["--show"] or args["--compact"]:
+        show_tasks(todolist, IDs,
+                   compact=args["--compact"],
+                   color=args["--color"],
+                   verbose=args["--verbose"])
 
     json.dump(todolist, open(list_file, "w"))
 
