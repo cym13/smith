@@ -331,9 +331,10 @@ def main():
         todolist = json.load(f)
 
     # if called without option or argument (except --color)
-    if not [ True for x in args if args[x] and x != "--color"]:
+    if not [ True for x in args
+                  if args[x]
+                  and x not in ("--color", "ID")]:
         args["--show"] = True
-        args["ID"]     = ["recent"]
 
     IDs = select_IDs(todolist, args["ID"])
 
@@ -375,7 +376,7 @@ def main():
         json.dump({ x:todolist[x] for x in IDs }, sys.stdout)
         print()
 
-    if args["--show"]:
+    if args["--show"] or args["--compact"]:
         if not IDs:
             IDs = select_IDs(todolist, ["recent"])
 
