@@ -50,7 +50,6 @@ Options:
     -c, --compact           Show tasks in a compact format
     -v, --verbose           Show more details about the tasks
     -R, --reverse           Reverse the order of the tasks
-    -G, --color             Print in color
     -h, --help              Print this help and exit
     -V, --version           Print the version number and exit
 

@@ -39,14 +39,13 @@ Options:
     -c, --compact           Show tasks in a compact format
     -v, --verbose           Show more details about the tasks
     -R, --reverse           Reverse the order of the tasks
-    -G, --color             Print in color
     -h, --help              Print this help and exit
     -V, --version           Print the version number and exit
 
 Smith relies on the EDITOR global variable to edit files
 """
 
-VERSION=0.9
+VERSION=1.0
 
 import os
 import re
@@ -343,10 +342,10 @@ def main():
         todolist = json.load(f)
 
 
-    # if called without option or argument (except --color)
+    # if called without option or argument
     if not [ True for x in args
                   if args[x]
-                  and x not in ("--color", "ID")]:
+                  and x not in ("ID")]:
         args["--show"] = True
 
     old_IDs = []
@@ -357,7 +356,6 @@ def main():
         args["ID"] = ["recent"]
 
     IDs = select_IDs(todolist, args["ID"], old_IDs)
-
 
 
     if args["--reverse"]:
@@ -404,7 +402,8 @@ def main():
     if args["--show"] or args["--compact"]:
         show_tasks(todolist, IDs, old_IDs,
                    compact=args["--compact"],
-                   color=args["--color"],
+                   # Only color if stdout is not redirected
+                   color=os.isatty(sys.stdout.fileno()),
                    verbose=args["--verbose"])
 
     json.dump(todolist, open(list_file, "w"))
