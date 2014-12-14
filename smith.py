@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# TODO: keep track of the last IDs used to propose relative identification
+
 """
 Smith: Super Mega Intuitive Todolist Helper
 
@@ -39,6 +41,7 @@ Smith relies on the EDITOR global variable to edit files
 import os
 import sys
 import json
+import time
 import subprocess
 from os import path
 from docopt import docopt
@@ -48,12 +51,55 @@ def import_data(path):
     ...
 
 
-def show_tasks(todolist, IDs, *, compact=False):
-    ...
+def show_tasks(todolist, IDs, *, compact=False, color=False):
+    if not compact:
+        print_fmt = "[{ID}] {title} {bar} {progress}/{limit}"
+    else:
+        print_fmt = "{ID}: {title} {progress}/{limit}"
+
+    for ID in IDs:
+        task = todolist[ID]
+        print(print_fmt.format(ID=ID,
+                              title=task["title"],
+                              bar=bar(task["progress"], task["limit"]),
+                              progress=task["progress"],
+                              limit=task["limit"]))
+
+
+def bar(progress, limit, *, width=40):
+    return "[%s]" + ("#" * math.floor(progress/limit)).ljust(width)
 
 
 def edit_task(todolist, IDs, scripts_dir):
-    ...
+    if not IDs:
+        ID  = new_id()
+        IDs = [ID]
+        todolist[ID] = {
+                "title":       "New task",
+                "progress":    0,
+                "limit":       0,
+                "script":      "",
+                "script_args": "",
+                "comment":     "",
+                "mtime":       0
+                }
+
+    def set_att(task, att_name):
+        return (input("%s [%s]:" % (att_name.capitalize(), task[att_name]))
+                or task[att_name])
+
+    for ID in IDs:
+        task = todolist[ID]
+
+        print("Editing [%s] %s:" % (ID, task["title"]))
+        task["title"]       = set_att("title")
+        task["progress"]    = int(set_att("progress"))
+        task["limit"]       = int(set_att("limit"))
+        task["script"]      = set_att("script")
+        task["script_args"] = set_att("script_args")
+        task["comment"]     = set_att("comment")
+        task["mtime"]       = time.time()
+
 
 
 def edit_script(todolist, IDs, scripts_dir):
@@ -77,6 +123,11 @@ def edit_script(todolist, IDs, scripts_dir):
                     ""]))
 
         subprocess.Popen([os.environ["EDITOR"], todolist[ID]["script"]])
+
+
+def new_id():
+    # Yes, this is ugly. Deal with it.
+    return hex(int(str(time.time()).replace('.', '')[:-4]))[2:].ljust(11, '0')
 
 
 def convert_id_timestamp(ID):
@@ -124,7 +175,7 @@ def select_IDs(todolist, ID_request):
 
     if 'recent' in ID_request:
         lst = todolist.keys()
-        lst.sort()
+        lst.sort(key=lambda x: x["mtime"]) # sort by modification time
         for each in lst[:5]:
             append(i, IDs)
 
