@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# TODO: keep track of the last IDs used to propose relative identification
 
 """
 Smith: Super Mega Intuitive Todolist Helper
@@ -9,7 +8,9 @@ Smith: Super Mega Intuitive Todolist Helper
 Usage: smith [options] [ID...]
 
 Arguments:
-    ID      A tasks ID
+    ID      A tasks IDbe it a unique ID or a
+            position number relative to the last command
+
             ID supports special keywords:
                 all         all tasks
                 last        the last updated task
@@ -70,33 +71,37 @@ COLOR = {"black":   "\033[30m",
          "default": "\033[00m"}
 
 
-def show_tasks(todolist, IDs, *, compact=False, color=False, verbose=False):
+def show_tasks(todolist, IDs, old_IDs, *,
+               compact=False, color=False, verbose=False):
     if not verbose:
         script_p      = ""
         script_args_p = ""
         comment_p     = ""
 
         if not compact:
-            print_fmt = ("[{ID_col}{ID}{default}] "
+            print_fmt = ( "[{num_col}{num}{default}:{ID_col}{ID}{default}] "
                          "{title:<30}\t{bar} "
                          "{progress}/{limit}")
         if compact:
-            print_fmt = "{ID_col}{ID}{default}: {title} {progress}/{limit}"
+            print_fmt = ("{num_col}{num}{default}:{ID_col}{ID}{default} "
+                         "{title} {progress}/{limit}")
 
     if verbose:
         if not compact:
-            print_fmt = ( "[{ID_col}{ID}{default}] {title:<30}\t{bar} "
-                        + "{progress}/{limit}\n"
-                        + "{script_p}{script}\n"
-                        + "{script_args_p}{script_args}\n"
-                        + "{comment_p}{comment}\n")
+            print_fmt = ( "[{num_col}{num}{default}:{ID_col}{ID}{default}] "
+                          "{title:<30}\t{bar} "
+                          "{progress}/{limit}\n"
+                          "{script_p}{script}\n"
+                          "{script_args_p}{script_args}\n"
+                          "{comment_p}{comment}\n")
 
-            script_p      = "Script: "
-            script_args_p = "Args: "
-            comment_p     = "Comment: "
+            script_p      = "Script:\t"
+            script_args_p = "Args:\t"
+            comment_p     = "Comment:\t"
 
         if compact:
-            print_fmt = ("{ID_col}{ID}{default}: {title} {progress}/{limit}"
+            print_fmt = ("{num_col}{num}{default}:{ID_col}{ID}{default} "
+                         "{title} {progress}/{limit}"
                          "{script_p}{script}"
                          "{script_args_p}{script_args}"
                          "{comment_p}{comment}")
@@ -104,12 +109,14 @@ def show_tasks(todolist, IDs, *, compact=False, color=False, verbose=False):
             script_args_p = " | "
             comment_p     = " | "
 
-    for ID in IDs:
+    for num,ID in enumerate(IDs):
         task = todolist[ID]
 
         print(re.sub("\n+", "\n", print_fmt.format(
                 ID            = ID,
+                num           = num,
                 ID_col        = COLOR["yellow"]  if color else "",
+                num_col       = COLOR["green"]   if color else "",
                 default       = COLOR["default"] if color else "",
                 title         = task["title"],
                 bar           = bar(task["progress"], task["limit"], color),
@@ -257,7 +264,7 @@ def sorted_IDs(todolist, key):
     return result
 
 
-def select_IDs(todolist, ID_request):
+def select_IDs(todolist, ID_request, old_IDs=[]):
     if ID_request is None:
         return []
 
@@ -308,6 +315,8 @@ def select_IDs(todolist, ID_request):
     for ID in ID_request:
         if ID in todolist:
             append(ID, IDs)
+        elif len(ID)<11 and ID.isnumeric() and int(ID)<len(old_IDs):
+            append(old_IDs[int(ID)], IDs)
         else:
             print("No task with ID '%s': ignoring it" % ID, file=sys.stderr)
 
@@ -317,8 +326,9 @@ def select_IDs(todolist, ID_request):
 def main():
     args = docopt(__doc__, version=VERSION)
 
-    smith_dir   =  path.expanduser("~/.config/smith/")
-    list_file   =  args["--file"] or path.join(smith_dir, "todolist")
+    tmp_ids_file = "/tmp/smith.tmp"
+    smith_dir    = path.expanduser("~/.config/smith/")
+    list_file    = args["--file"] or path.join(smith_dir, "todolist")
     if args["--script-dir"] is None:
         scripts_dir = path.join(smith_dir, "scripts")
     else:
@@ -330,13 +340,19 @@ def main():
     with open(list_file) as f:
         todolist = json.load(f)
 
+
     # if called without option or argument (except --color)
     if not [ True for x in args
                   if args[x]
                   and x not in ("--color", "ID")]:
         args["--show"] = True
 
-    IDs = select_IDs(todolist, args["ID"])
+    old_IDs = []
+    if path.exists(tmp_ids_file):
+        old_IDs = json.load(open(tmp_ids_file))
+
+    IDs = select_IDs(todolist, args["ID"], old_IDs)
+
 
     if args["--import"]:
         import_data(todolist, args["--import"])
@@ -380,12 +396,15 @@ def main():
         if not IDs:
             IDs = select_IDs(todolist, ["recent"])
 
-        show_tasks(todolist, IDs,
+        show_tasks(todolist, IDs, old_IDs,
                    compact=args["--compact"],
                    color=args["--color"],
                    verbose=args["--verbose"])
 
     json.dump(todolist, open(list_file, "w"))
+
+    # keep track of the last IDs used to propose relative identification
+    json.dump(IDs, open(tmp_ids_file, "w"))
 
 
 if __name__ == "__main__":

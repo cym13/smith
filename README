@@ -63,9 +63,8 @@ Related files are written in ~/.config/smith by default.
 TODO
 ====
 
-[ ] Keep track of the last IDs used to propose relative indexing
 [-] Test every options
-[-] Prettier output
+[+] Prettier output
 
 License
 =======
