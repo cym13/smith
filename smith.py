@@ -12,10 +12,12 @@ Arguments:
     ID      A tasks ID
             ID supports special keywords:
                 all         all tasks
+                last        the last updated task
+                recent      the five last updated tasks
                 finished    all finished tasks
                 virgins     all tasks with no progress at all
-                recent      the five last updated tasks
-                last        the last updated task
+                maxfirst    all tasks, most advanced first
+                minfirst    all tasks, least advanced first
 
 Options:
     -s, --show              Show tasks
@@ -267,34 +269,47 @@ def select_IDs(todolist, ID_request):
     sorted_by_progress = sorted_IDs(todolist,
                         lambda x: todolist[x]["progress"]/todolist[x]["limit"])
 
-    for ID in ID_request:
-        # Ugly but needed to preserve explicit arguments priority
-        if ID not in ("all", "recent", "last", "finished", "virgins"):
-            if ID in todolist:
-                append(ID, IDs)
-            else:
-                print("No task with ID '%s': ignoring it" % ID, file=sys.stderr)
-
     if 'all' in ID_request:
-        for i in sorted_by_progress:
+        for i in sorted_by_mtime:
             append(i, IDs)
+        ID_request.remove("all")
 
     if 'recent' in ID_request:
         for i in sorted_by_mtime[:5]:
             append(i, IDs)
+        ID_request.remove("recent")
 
     if 'last' in ID_request:
         append(sorted_by_mtime[0], IDs)
+        ID_request.remove("last")
 
     if 'finished' in ID_request:
         for i in sorted_by_progress:
             if todolist[i]["progress"] == todolist[i]["limit"]:
                 append(i, IDs)
+        ID_request.remove("finished")
 
     if 'virgins' in ID_request:
         for i in sorted_by_progress:
             if todolist[i]["progress"] == 0:
                 append(i, IDs)
+        ID_request.remove("virgins")
+
+    if 'maxfirst' in ID_request:
+        for i in sorted_by_progress:
+            append(i, IDs)
+        ID_request.remove("maxfirst")
+
+    if 'minfirst' in ID_request:
+        for i in sorted_by_progress[::-1]:
+            append(i, IDs)
+        ID_request.remove("minfirst")
+
+    for ID in ID_request:
+        if ID in todolist:
+            append(ID, IDs)
+        else:
+            print("No task with ID '%s': ignoring it" % ID, file=sys.stderr)
 
     return IDs
 
@@ -344,6 +359,8 @@ def main():
 
     if args["--do"]:
         for ID in IDs:
+            task = todolist[ID].copy()
+            update_by(todolist, [ID], 1)
             p = os.popen('%s %s %s %s ' % (todolist[ID]["script"],
                                            todolist[ID]["progress"],
                                            todolist[ID]["limit"],
