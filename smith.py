@@ -45,7 +45,7 @@ Options:
 Smith relies on the EDITOR global variable to edit files
 """
 
-VERSION=1.0
+VERSION=1.0.1
 
 import os
 import re
@@ -144,11 +144,11 @@ def bar(progress, limit, color=False, width=30):
         else:
             col = "cyan"
     else:
-        col = "default"
+        col = None
 
-    return "[%s%s%s]" % (COLOR[col],
+    return "[%s%s%s]" % (COLOR[col] if color else "",
                          ("#" * math.floor(ratio * width)).ljust(width),
-                         COLOR["default"]
+                         COLOR["default"] if color else ""
                         )
 
 
