@@ -1,0 +1,84 @@
+Description
+===========
+
+Smith: Super Mega Intuitive Todolist Helper
+
+Smith is more than a todolist manager, smith is designed not only to show you
+that you have unresolved tasks, but also to actively help you to resolve them.
+
+Smith let's you link your tasks with scripts to be more reactive when dealing
+with tasks, that way you can automatically launch your media player to see the
+next cat video on your watchlist, open your mail client well configured to
+answer that mail from your boss and more...
+
+Documentation
+=============
+
+Usage: smith [options] [ID...]
+
+Arguments:
+    ID      A tasks ID
+            ID supports special keywords:
+                all         all tasks
+                finished    all finished tasks
+                virgins     all tasks with no progress at all
+                recent      the five last updated tasks
+                last        the last updated task
+
+Options:
+    -s, --show              Show tasks
+    -t, --task              Create or edit a task
+    -a, --action            Add or edit a task's action
+    -r, --remove            Remove a task
+    -d, --do                Do the action associated with a task
+                            and update the progress accordingly
+    -i, --import FILE       Read from a file the tasks to be added
+                            If FILE is - then read from stdin
+    -o, --export            Prints raw json task data to stdout
+    -u, --update            Increments the task's progress by
+    -U, --update-by N       Updates the task's progress by N
+    -f, --file FILE         Use FILE to load and save the todolist
+                            Default is ~/.config/smith/todolist
+    -D, --script-dir DIR    Looks in DIR to find scripts
+                            Default is ~/.config/smith/scripts/
+    -c, --compact           Show tasks in a compact format
+    -v, --verbose           Show more details about the tasks
+    -G, --color             Print in color
+    -h, --help              Print this help and exit
+    -V, --version           Print the version number and exit
+
+
+Dependencies
+============
+
+This program relies on python3
+
+docopt      You can install it with   pip3 install docopt
+
+Files
+=====
+
+Related files are written in ~/.config/smith by default.
+
+TODO
+====
+
+[ ] Keep track of the last IDs used to propose relative indexing
+[ ] Test every options
+[ ] Prettier output
+
+License
+=======
+
+This program is under the GPLv3 License.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+Contact
+=======
+
+Main developper: Cédric Picard
+Email:           cedric.picard@efrei.net
+Twitter:         @Cym13
+GPG:             383A 76B9 D68D 2BD6 9D2B  4716 E3B9 F4FE 5CED 42CB
