@@ -352,6 +352,9 @@ def main():
     if path.exists(tmp_ids_file):
         old_IDs = json.load(open(tmp_ids_file))
 
+    if not args["ID"] and args["--remove"]:
+        return # Never use default arguments with --remove
+
     if not args["ID"] and (args["--show"] or args["--compact"]):
         args["ID"] = ["recent"]
 
