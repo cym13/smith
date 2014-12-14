@@ -359,8 +359,11 @@ def main():
 
     if args["--do"]:
         for ID in IDs:
+            if not path.exists(todolist[ID]["script"]):
+                print("No script for %s: ignoring" % ID, file=sys.stderr)
+                continue
             task = todolist[ID].copy()
-            update_by(todolist, [ID], 1)
+            update_by({ID: task}, [ID], 1)
             p = os.popen('%s %s %s %s ' % (todolist[ID]["script"],
                                            todolist[ID]["progress"],
                                            todolist[ID]["limit"],
@@ -372,7 +375,7 @@ def main():
         json.dump({ x:todolist[x] for x in IDs }, sys.stdout)
         print()
 
-    if args["--show"] or args["--compact"]:
+    if args["--show"]:
         if not IDs:
             IDs = select_IDs(todolist, ["recent"])
 
