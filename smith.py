@@ -409,10 +409,10 @@ def main():
                    color=os.isatty(sys.stdout.fileno()),
                    verbose=args["--verbose"])
 
-    json.dump(todolist, open(list_file, "w"))
+        # keep track of the last IDs used to propose relative identification
+        json.dump(IDs, open(tmp_ids_file, "w"))
 
-    # keep track of the last IDs used to propose relative identification
-    json.dump(IDs, open(tmp_ids_file, "w"))
+    json.dump(todolist, open(list_file, "w"))
 
 
 if __name__ == "__main__":
