@@ -406,11 +406,7 @@ def main():
         edit_action(todolist, IDs, scripts_dir)
 
     if args["--do"]:
-        for i in IDs:
-            print(i, todolist[i]["mtime"])
         do_action(todolist, IDs)
-        for i in IDs:
-            print(i, todolist[i]["mtime"])
 
     if args["--export"]:
         json.dump({ x:todolist[x] for x in IDs }, sys.stdout)
