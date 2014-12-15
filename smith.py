@@ -224,6 +224,21 @@ def edit_action(todolist, IDs, scripts_dir):
         os.popen("chmod +x %s" % todolist[ID]["script"])
 
 
+def do_action(todolist, IDs):
+    for ID in IDs:
+        if not path.exists(todolist[ID]["script"]):
+            print("No script for %s: ignoring" % ID, file=sys.stderr)
+            continue
+        task = todolist[ID].copy()
+        update_by({ID: task}, [ID], 1)
+        p = subprocess.call([task["script"],
+                         str(task["progress"]),
+                         str(task["limit"]),
+                             task["script_args"]])
+        if p == 0:
+            update_by(todolist, [ID], 1)
+
+
 def new_id():
     # Yes, this is ugly. Deal with it.
     return hex(int(str(time.time()).replace('.', '')[:-4]))[2:].rjust(11, '0')
@@ -385,18 +400,7 @@ def main():
         edit_action(todolist, IDs, scripts_dir)
 
     if args["--do"]:
-        for ID in IDs:
-            if not path.exists(todolist[ID]["script"]):
-                print("No script for %s: ignoring" % ID, file=sys.stderr)
-                continue
-            task = todolist[ID].copy()
-            update_by({ID: task}, [ID], 1)
-            p = os.popen('%s %s %s %s ' % (task["script"],
-                                           task["progress"],
-                                           task["limit"],
-                                           task["script_args"]))
-            if p.close() is None:
-                update_by(todolist, [ID], 1)
+        do_action(todolist, IDs)
 
     if args["--export"]:
         json.dump({ x:todolist[x] for x in IDs }, sys.stdout)
