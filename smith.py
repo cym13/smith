@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-
 """
 Smith: Super Mega Intuitive Todolist Helper
 
@@ -226,15 +225,22 @@ def edit_action(todolist, IDs, scripts_dir):
 
 def do_action(todolist, IDs):
     for ID in IDs:
+        todolist[ID]["mtime"] = time.time()
+
         if not path.exists(todolist[ID]["script"]):
             print("No script for %s: ignoring" % ID, file=sys.stderr)
             continue
+
         task = todolist[ID].copy()
         update_by({ID: task}, [ID], 1)
-        p = subprocess.call([task["script"],
-                         str(task["progress"]),
-                         str(task["limit"]),
-                             task["script_args"]])
+        try:
+            p = subprocess.call([task["script"],
+                             str(task["progress"]),
+                             str(task["limit"]),
+                                 task["script_args"]])
+        except ProcessLookupError:
+            p = -1
+
         if p == 0:
             update_by(todolist, [ID], 1)
 
@@ -400,7 +406,11 @@ def main():
         edit_action(todolist, IDs, scripts_dir)
 
     if args["--do"]:
+        for i in IDs:
+            print(i, todolist[i]["mtime"])
         do_action(todolist, IDs)
+        for i in IDs:
+            print(i, todolist[i]["mtime"])
 
     if args["--export"]:
         json.dump({ x:todolist[x] for x in IDs }, sys.stdout)
