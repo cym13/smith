@@ -54,6 +54,106 @@ Options:
     -V, --version           Print the version number and exit
 
 
+How to make the magic happen
+============================
+
+« I want to study SICP using MIT's OpenCourseWare videos, and take notes at
+  the same time, while keeping track of my progress. Can Smith help me? »
+
+It is exactly what it is for!
+
+Let's start a new task:
+
+    $ smith -t
+
+    Editing [14a506183f8] New task:
+    Title [New task]: SICP
+
+    # We let it at 0, as we haven't seen any video
+    Progress [0]:
+
+    # There are 20 videos
+    Limit [1]: 20
+
+    # While at it, we will make a generic script for opencourseware ?
+    Script []: ocw_videos
+
+    # A generic script will need the url of the course in argument
+    # (Of course you would put the real url here)
+    Script_args []: http://ocw.mit.edu/courses/..../video-lectures/
+
+    # No comment here
+    Comment []:
+
+
+The task is created, we can see it:
+
+    $ smith -s last
+
+    [0:14a506183f8] SICP              [                        ] 0/20
+
+Let's edit the script now to really add the action:
+
+    $ smith -a last
+
+    (Our favorite editor is launched here)
+
+    #!/bin/sh
+    #
+    # Open Course Ware
+    # This is a script for the SMITH todolist management tool
+    # It is called with the following arguments:
+    #      the current progress of the task
+    #      the limit set for the task
+    #      the argument field of the task
+
+    PLAYER="vlc"
+    LISTURL="$3"
+
+    # This builds the url of the youtube video associated with the lesson
+    URL="http://ocw.mit.edu$(curl -s "$LISTURL"                        |\
+                             tr '"' '\n'                               |\
+                             grep "/courses/.*/video-lectures/"        |\
+                             grep -v "rss.xml"                         |\
+                             uniq                                      |\
+                             sed -n "$1p")"
+
+    "$PLAYER" "$URL" &
+    "$EDITOR"
+
+    # Gets confirmation that the task is done
+    echo -n "Is it ok? [Y/n] "
+    read ok
+
+    if [ "$ok" = "n" -o "$ok" = "N" ] ; then
+        exit 0
+    else
+        exit 1
+    fi
+
+Wow. This was a rather complicated script, but it does a rather complicated
+job as we tried to make it generic enought to be reused unchanged.
+
+But here it is, everything is now in place.
+
+It is time to try it.
+
+    $ smith -d last
+
+    (VLC launches here on the video while vim starts a new document)
+    Is it ok? [Y/n] y
+
+As the return code of the script is 0, the progress is updated.
+
+    $ smith -s last
+
+    [0:14a506183f8] SICP              [#                       ] 1/20
+
+And you can now reuse this script with another course without having to set
+everything up again, you will just have to set the same script name and the
+corresponding extra argument.
+
+
 Dependencies
 ============
 
@@ -69,8 +169,9 @@ Related files are written in ~/.config/smith by default.
 TODO
 ====
 
-[-] Test every options
 [+] Prettier output
+[-] Test every options
+[ ] Transparent imports over the network
 
 License
 =======
