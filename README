@@ -38,7 +38,7 @@ Options:
     -r, --remove            Remove a task
     -d, --do                Do the action associated with a task
                             and update the progress accordingly
-    -i, --import FILE       Read from a file the tasks to be added
+    -i, --import FILE       Read from a file or a url the tasks to be added
                             If FILE is - then read from stdin
     -o, --export            Prints raw json task data to stdout
     -u, --update            Increments the task's progress by

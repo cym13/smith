@@ -26,7 +26,7 @@ Options:
     -r, --remove            Remove a task
     -d, --do                Do the action associated with a task
                             and update the progress accordingly
-    -i, --import FILE       Read from a file the tasks to be added
+    -i, --import FILE       Read from a file or a url the tasks to be added
                             If FILE is - then read from stdin
     -o, --export            Prints raw json task data to stdout
     -u, --update            Increments the task's progress by
@@ -44,7 +44,7 @@ Options:
 Smith relies on the EDITOR global variable to edit files
 """
 
-VERSION="1.0.2"
+VERSION="1.1.0"
 
 import os
 import re
