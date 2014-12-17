@@ -57,8 +57,8 @@ Options:
 How to make the magic happen
 ============================
 
-« I want to study SICP using MIT's OpenCourseWare videos, and take notes at
-  the same time, while keeping track of my progress. Can Smith help me? »
+« I want to study SICP using MIT's OpenCourseWare videos while keeping track
+  of my progress. Can Smith help me? »
 
 It is exactly what it is for!
 
@@ -110,49 +110,63 @@ Let's edit the script now to really add the action:
     PLAYER="vlc"
     LISTURL="$3"
 
-    # This builds the url of the youtube video associated with the lesson
+    # This builds the url of the video page associated with the lesson
     URL="http://ocw.mit.edu$(curl -s "$LISTURL"                        |\
                              tr '"' '\n'                               |\
-                             grep "/courses/.*/video-lectures/"        |\
+                             grep "${URL#http://ocw.mit.edu}"          |\
                              grep -v "rss.xml"                         |\
                              uniq                                      |\
                              sed -n "$1p")"
 
-    "$PLAYER" "$URL" &
-    "$EDITOR"
+    #This is the youtube url of the video
+    YTURL="$(wget -O- -q "$URL"    |\
+             tr "'" "\n"           |\
+             grep "youtube.com/v/")"
 
-    # Gets confirmation that the task is done
-    echo -n "Is it ok? [Y/n] "
-    read ok
+    exec "$PLAYER" "$YTURL"
 
-    if [ "$ok" = "n" -o "$ok" = "N" ] ; then
-        exit 0
-    else
-        exit 1
-    fi
-
-Wow. This was a rather complicated script, but it does a rather complicated
-job as we tried to make it generic enought to be reused unchanged.
-
-But here it is, everything is now in place.
-
-It is time to try it.
+Everything is now in place, it is time to try it.
 
     $ smith -d last
 
-    (VLC launches here on the video while vim starts a new document)
-    Is it ok? [Y/n] y
+    (VLC launches here on the video)
 
-As the return code of the script is 0, the progress is updated.
+If you play the player exits normally (at the end of the video or if closed
+peacefully by you), it will return no error. The progress is then updated.
 
     $ smith -s last
 
     [0:14a506183f8] SICP              [#                       ] 1/20
 
+This also means that if there were an error the progress would'nt be updated.
+
 And you can now reuse this script with another course without having to set
 everything up again, you will just have to set the same script name and the
 corresponding extra argument.
 
+If you made a mistake, you can always update the progress manually:
+
+    $ smith -s -u last
+
+    [0:14a506183f8] SICP              [##                      ] 2/20
+
+    $ smith -s -U 2 last
+
+    [0:14a506183f8] SICP              [####                    ] 4/20
+
+    $ smith -s -U -2 last
+
+    [0:14a506183f8] SICP              [##                      ] 2/20
+
+And if you are done with this task:
+
+    $ smith -r last
+
+    $ smith -s 14a506183f8
+
+    No task with ID '14a506183f8': ignoring it
+
+That's it !
 
 Dependencies
 ============
