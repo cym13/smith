@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Smith: Super Mega Intuitive Todolist Helper
+Smith: Surely the Most Intriguing Todolist Helper
 
 Usage: smith [options] [ID...]
 
