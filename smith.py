@@ -59,51 +59,50 @@ from functools import reduce
 
 
 # ANSI colors
-COLOR = {"black":   "\033[30m",
-         "red":     "\033[31m",
-         "green":   "\033[32m",
-         "yellow":  "\033[33m",
-         "blue":    "\033[34m",
-         "magenta": "\033[35m",
-         "cyan":    "\033[36m",
-         "white":   "\033[37m",
-         "default": "\033[00m"}
+COLOR = {"black"   : "\033[30m",
+         "red"     : "\033[31m",
+         "green"   : "\033[32m",
+         "yellow"  : "\033[33m",
+         "blue"    : "\033[34m",
+         "magenta" : "\033[35m",
+         "cyan"    : "\033[36m",
+         "white"   : "\033[37m",
+         "default" : "\033[00m"}
 
 
 def show_tasks(todolist, IDs, old_IDs, *,
                compact=False, verbose=False, color=False):
+
+    if not compact:
+        print_fmt = ( "[{num_col}{num}{default}:{ID_col}{ID}{default}] "
+                     "{title:<30}\t{bar} "
+                     "{progress}/{limit}")
+
+    elif compact:
+            print_fmt = ("{num_col}{num}{default}:{ID_col}{ID}{default} "
+                         "{title} {progress}/{limit}")
+
     if not verbose:
         script_p      = ""
         script_args_p = ""
         comment_p     = ""
 
+    elif verbose:
         if not compact:
-            print_fmt = ( "[{num_col}{num}{default}:{ID_col}{ID}{default}] "
-                         "{title:<30}\t{bar} "
-                         "{progress}/{limit}")
-        if compact:
-            print_fmt = ("{num_col}{num}{default}:{ID_col}{ID}{default} "
-                         "{title} {progress}/{limit}")
-
-    if verbose:
-        if not compact:
-            print_fmt = ( "[{num_col}{num}{default}:{ID_col}{ID}{default}] "
-                          "{title:<30}\t{bar} "
-                          "{progress}/{limit}\n"
-                          "{script_p}{script}\n"
-                          "{script_args_p}{script_args}\n"
-                          "{comment_p}{comment}\n")
+            print_fmt +=  ("\n"
+                           "{script_p}{script}\n"
+                           "{script_args_p}{script_args}\n"
+                           "{comment_p}{comment}\n")
 
             script_p      = "Script:\t"
             script_args_p = "Args:\t"
             comment_p     = "Comment:\t"
 
-        if compact:
-            print_fmt = ("{num_col}{num}{default}:{ID_col}{ID}{default} "
-                         "{title} {progress}/{limit}"
-                         "{script_p}{script}"
-                         "{script_args_p}{script_args}"
-                         "{comment_p}{comment}")
+        elif compact:
+            print_fmt += ("{script_p}{script}"
+                          "{script_args_p}{script_args}"
+                          "{comment_p}{comment}")
+
             script_p      = " | "
             script_args_p = " | "
             comment_p     = " | "
@@ -147,8 +146,7 @@ def bar(progress, limit, color=False, width=30):
 
     return "[%s%s%s]" % (COLOR[col] if color else "",
                          ("#" * math.floor(ratio * width)).ljust(width),
-                         COLOR["default"] if color else ""
-                        )
+                         COLOR["default"] if color else "")
 
 
 def update_by(todolist, IDs, n):
@@ -167,13 +165,13 @@ def edit_task(todolist, IDs, scripts_dir, color):
         ID  = new_id()
         IDs = [ID]
         todolist[ID] = {
-                "title":       "New task",
-                "progress":    0,
-                "limit":       1,
-                "script":      "",
-                "script_args": "",
-                "comment":     "",
-                "mtime":       0}
+                "title"       : "New task",
+                "progress"    : 0,
+                "limit"       : 1,
+                "script"      : "",
+                "script_args" : "",
+                "comment"     : "",
+                "mtime"       : 0}
 
     for ID in IDs:
         task = todolist[ID]
@@ -388,7 +386,7 @@ def main():
     # if called without option or argument
     if not [ True for x in args
                   if args[x]
-                  and x not in ("ID")]:
+                  and x not in ("ID") ]:
         args["--show"] = True
 
     old_IDs = []
@@ -417,7 +415,10 @@ def main():
         update_by(todolist, IDs, 1)
 
     if args["--update-by"]:
-        update_by(todolist, IDs, args["--update-by"])
+        try:
+            update_by(todolist, IDs, args["--update-by"])
+        except ValueError as e:
+            sys.exit(e)
 
     if args["--remove"]:
         for ID in IDs:
