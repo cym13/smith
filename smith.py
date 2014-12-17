@@ -71,7 +71,7 @@ COLOR = {"black":   "\033[30m",
 
 
 def show_tasks(todolist, IDs, old_IDs, *,
-               compact=False, color=False, verbose=False):
+               compact=False, verbose=False, color=False):
     if not verbose:
         script_p      = ""
         script_args_p = ""
@@ -162,7 +162,7 @@ def update_by(todolist, IDs, n):
         task["mtime"] = time.time()
 
 
-def edit_task(todolist, IDs, scripts_dir):
+def edit_task(todolist, IDs, scripts_dir, color):
     if not IDs:
         ID  = new_id()
         IDs = [ID]
@@ -179,10 +179,20 @@ def edit_task(todolist, IDs, scripts_dir):
         task = todolist[ID]
 
         def set_att(att_name):
-            return (input("%s [%s]: " % (att_name.capitalize(), task[att_name]))
-                    or task[att_name])
+            prompt = "{f_col}{f_name} {default_col}[{f_default}]: ".format(
+                            f_col       = COLOR["magenta"] if color else "",
+                            default_col = COLOR["default"] if color else "",
+                            f_name      = att_name.capitalize(),
+                            f_default   = task[att_name])
 
-        print("Editing [%s] %s:" % (ID, task["title"]))
+            return input(prompt) or task[att_name]
+
+        print("Editing [{col_ID}{ID}{def_col}] {title}:".format(
+                        col_ID  = COLOR["yellow"]  if color else "",
+                        def_col = COLOR["default"] if color else "",
+                        ID      = ID,
+                        title   = task["title"]))
+
         task["title"]       = set_att("title")
         task["progress"]    = int(set_att("progress"))
         task["limit"]       = int(set_att("limit"))
@@ -385,6 +395,9 @@ def main():
 
     IDs = select_IDs(todolist, args["ID"], old_IDs)
 
+    # Only color if stdout is not redirected
+    color = os.isatty(sys.stdout.fileno()),
+
 
     if args["--reverse"]:
         IDs.reverse()
@@ -404,7 +417,7 @@ def main():
         IDs = []
 
     if args["--task"]:
-        edit_task(todolist, IDs, scripts_dir)
+        edit_task(todolist, IDs, scripts_dir, color)
 
     if args["--action"]:
         edit_action(todolist, IDs, scripts_dir)
@@ -419,9 +432,8 @@ def main():
     if args["--show"] or args["--compact"]:
         show_tasks(todolist, IDs, old_IDs,
                    compact=args["--compact"],
-                   # Only color if stdout is not redirected
-                   color=os.isatty(sys.stdout.fileno()),
-                   verbose=args["--verbose"])
+                   verbose=args["--verbose"],
+                   color=color)
 
         # keep track of the last IDs used to propose relative identification
         json.dump(IDs, open(tmp_ids_file, "w"))
