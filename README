@@ -13,6 +13,18 @@ answer that mail from your boss and more...
 
 Edition commands use the EDITOR environnement variable.
 
+Why would I use smith ?
+=======================
+
+Most todolist managers only show you the tasks to be done.
+
+To me, this is useless. I don't need my computer to tell me that I have
+things to do, I need him to help me do it.
+
+By relying on external programs, Smith allows you to script your way out of
+the midst of unfinished tasks. However, that also means that some wizardry is
+needed in order to unleash the full power of Smith.
+
 Documentation
 =============
 
