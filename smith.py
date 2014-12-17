@@ -231,6 +231,10 @@ def do_action(todolist, IDs):
             print("No script for %s: ignoring" % ID, file=sys.stderr)
             continue
 
+        elif todolist[ID]["progress"] == todolist[ID]["limit"]:
+            print("Task already finished %s: ignoring" % ID, file=sys.stderr)
+            continue
+
         task = todolist[ID].copy()
         update_by({ID: task}, [ID], 1)
         try:
