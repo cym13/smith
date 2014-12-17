@@ -113,7 +113,7 @@ Let's edit the script now to really add the action:
     # This builds the url of the video page associated with the lesson
     URL="http://ocw.mit.edu$(curl -s "$LISTURL"                        |\
                              tr '"' '\n'                               |\
-                             grep "${URL#http://ocw.mit.edu}"          |\
+                             grep "${LISTURL#http://ocw.mit.edu}"      |\
                              grep -v "rss.xml"                         |\
                              uniq                                      |\
                              sed -n "$1p")"
