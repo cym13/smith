@@ -183,9 +183,7 @@ Related files are written in ~/.config/smith by default.
 TODO
 ====
 
-[+] Prettier output
 [-] Test every options
-[ ] Transparent imports over the network
 
 License
 =======

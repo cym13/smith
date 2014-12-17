@@ -265,15 +265,23 @@ def new_id():
 
 def import_data(todolist, input_file):
     if input_file == '-':
-        ifile = sys.stdin
+        data = sys.stdin.read()
+    elif '://' in input_file and not path.exists(input_file):
+        from urllib import request, error
+        try:
+            ifile = request.urlopen(input_file).read().decode("utf8")
+        except error.URLError as e:
+            print("Unable to open url %s: ignoring"%input_file, file=sys.stderr)
+            return
     else:
-        ifile = open(path.expanduser(input_file))
+        try:
+            data = open(path.expanduser(input_file)).read()
+        except:
+            print("Unable to open %s: ignoring" % input_file, file=sys.stderr)
+            return
 
-    for ID,value in json.load(ifile):
+    for ID,value in json.loads(data).items():
         todolist[ID] = value
-
-    if ifile is not sys.stdin:
-        ifile.close()
 
 
 def mkconfigdir(dir_path):
