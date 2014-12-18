@@ -60,8 +60,8 @@ Options:
     -D, --script-dir DIR    Looks in DIR to find scripts
                             Default is ~/.config/smith/scripts/
     -c, --compact           Show tasks in a compact format
-    -v, --verbose           Show more details about the tasks
-    -R, --reverse           Reverse the order of the tasks
+    -v, --verbose           Show more details about tasks
+    -R, --reverse           Reverse the order of the selected tasks
     -T, --new-title TITLE   Change the tasks title to TITLE
     -h, --help              Print this help and exit
     -V, --version           Print the version number and exit
