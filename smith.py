@@ -320,6 +320,7 @@ def new_id():
     # Yes, this is ugly. Deal with it.
     return hex(int(str(time.time()).replace('.', '')[:-4]))[2:].rjust(11, '0')
 
+
 def import_data(todolist, input_file):
     if input_file == '-':
         data = sys.stdin.read()
@@ -516,5 +517,5 @@ def main():
 if __name__ == "__main__":
     try:
         main()
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, EOFError):
         pass
