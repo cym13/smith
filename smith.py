@@ -172,6 +172,7 @@ def edit_task(todolist, IDs, scripts_dir, color):
                 "script"      : "",
                 "script_args" : "",
                 "comment"     : "",
+                "deadline"    : None,
                 "mtime"       : 0}
 
     def set_att(att_name):
@@ -197,6 +198,8 @@ def edit_task(todolist, IDs, scripts_dir, color):
         task["script"]      = set_att("script")
         task["script_args"] = set_att("script_args")
         task["comment"]     = set_att("comment")
+        print("Deadline format: DD[[/MM]/YYYY]")
+        task["deadline"]    = set_att("deadline")
         task["mtime"]       = time.time()
 
         if task["progress"] < 0:
