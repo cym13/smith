@@ -193,7 +193,7 @@ def edit_task(todolist, IDs, scripts_dir, color):
                 "script"          : "",
                 "script_args"     : "",
                 "comment"         : "",
-                "deadline"        : None,
+                "deadline"        : "",
                 "deadline_limits" : [],
                 "mtime"           : 0}
 
