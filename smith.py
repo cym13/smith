@@ -38,6 +38,7 @@ Options:
     -c, --compact           Show tasks in a compact format
     -v, --verbose           Show more details about the tasks
     -R, --reverse           Reverse the order of the tasks
+    -T, --new-title TITLE   Change the tasks title to TITLE
     -h, --help              Print this help and exit
     -V, --version           Print the version number and exit
 
@@ -430,6 +431,10 @@ def main():
 
     if args["--action"]:
         edit_action(todolist, IDs, scripts_dir)
+
+    if args["--new-title"]:
+        for ID in IDs:
+            todolist[ID]["title"] = args["--new-title"]
 
     if args["--do"]:
         do_action(todolist, IDs)

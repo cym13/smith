@@ -62,9 +62,9 @@ Options:
     -c, --compact           Show tasks in a compact format
     -v, --verbose           Show more details about the tasks
     -R, --reverse           Reverse the order of the tasks
+    -T, --new-title TITLE   Change the tasks title to TITLE
     -h, --help              Print this help and exit
     -V, --version           Print the version number and exit
-
 
 How to make the magic happen
 ============================
@@ -195,6 +195,7 @@ Related files are written in ~/.config/smith by default.
 TODO
 ====
 
+[ ] Add deadline support
 [-] Test every options
 
 License
