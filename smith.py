@@ -151,15 +151,6 @@ def show_tasks(todolist, IDs, old_IDs, *,
             )))
 
 
-def time_conv(timef):
-    date_fmt = "%d/%m/%Y"
-
-    if type(timef) is str:
-        return time.mktime(time.strptime(timef, date_fmt))
-
-    return time.strftime(date_fmt, time.struct_time(timef))
-
-
 def bar(progress, limit, color=False, width=30):
     ratio      = progress/limit
 
