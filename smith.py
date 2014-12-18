@@ -97,7 +97,7 @@ def show_tasks(todolist, IDs, old_IDs, *,
 
             script_p      = "Script:\t"
             script_args_p = "Args:\t"
-            comment_p     = "Comment:\t"
+            comment_p     = "Comment: "
 
         elif compact:
             print_fmt += ("{script_p}{script}"
