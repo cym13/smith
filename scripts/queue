@@ -1,0 +1,25 @@
+#!/bin/sh
+#
+# Open Course Ware
+# This is a script for the SMITH todolist management tool
+# It is called with the following arguments:
+#      the current progress of the task
+#      the limit set for the task
+#      the argument field of the task
+
+TASKID="0210938a1af"
+
+if [ -z "$TASKID" ] ; then
+    exit 1
+fi
+
+title=`sed -n "$1p" <<EOF
+Task number 1
+Task number 2
+Task number 3
+Task number 4
+Task number 5
+Task number 6
+EOF`
+
+exec smith -T "'$title'" "$TASKID"
