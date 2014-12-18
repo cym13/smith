@@ -171,17 +171,16 @@ def edit_task(todolist, IDs, scripts_dir, color):
                 "comment"     : "",
                 "mtime"       : 0}
 
+    def set_att(att_name):
+        prompt = "{f_col}{f_name} {default_col}[{f_default}]: ".format(
+                        f_col       = COLOR["magenta"] if color else "",
+                        default_col = COLOR["default"] if color else "",
+                        f_name      = att_name.capitalize(),
+                        f_default   = task[att_name])
+        return input(prompt) or task[att_name]
+
     for ID in IDs:
         task = todolist[ID]
-
-        def set_att(att_name):
-            prompt = "{f_col}{f_name} {default_col}[{f_default}]: ".format(
-                            f_col       = COLOR["magenta"] if color else "",
-                            default_col = COLOR["default"] if color else "",
-                            f_name      = att_name.capitalize(),
-                            f_default   = task[att_name])
-
-            return input(prompt) or task[att_name]
 
         print("Editing [{col_ID}{ID}{def_col}] {title}:".format(
                         col_ID  = COLOR["yellow"]  if color else "",
