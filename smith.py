@@ -76,14 +76,15 @@ def show_tasks(todolist, IDs, old_IDs, *,
 
     if not compact:
         print_fmt = ( "[{num_col}{num}{default}:{ID_col}{ID}{default}] "
-                     "{title:<30}\t{bar} "
+                     "{dl_col}{title:<30}{default}\t{bar} "
                      "{progress}/{limit}")
 
     elif compact:
             print_fmt = ("{num_col}{num}{default}:{ID_col}{ID}{default} "
-                         "{title} {progress}/{limit}")
+                         "{dl_col}{title}{default} {progress}/{limit}")
 
     if not verbose:
+        deadline_p    = ""
         script_p      = ""
         script_args_p = ""
         comment_p     = ""
@@ -91,10 +92,12 @@ def show_tasks(todolist, IDs, old_IDs, *,
     elif verbose:
         if not compact:
             print_fmt +=  ("\n"
+                           "{deadline_p}{deadline}\n"
                            "{script_p}{script}\n"
                            "{script_args_p}{script_args}\n"
                            "{comment_p}{comment}\n")
 
+            deadline_p    = "Deadline:\t"
             script_p      = "Script:\t"
             script_args_p = "Args:\t"
             comment_p     = "Comment: "
@@ -104,12 +107,27 @@ def show_tasks(todolist, IDs, old_IDs, *,
                           "{script_args_p}{script_args}"
                           "{comment_p}{comment}")
 
+            deadline_p    = " | "
             script_p      = " | "
             script_args_p = " | "
             comment_p     = " | "
 
     for num,ID in enumerate(IDs):
-        task = todolist[ID]
+        task     = todolist[ID]
+        deadline = task["deadline"]
+
+        if deadline is None:
+            dl_col = ""
+
+        elif time.time() < task["deadline_limits"][0]:
+            dl_col = COLOR["default"]
+
+        elif (task["deadline_limits"][0] < time.time()
+                                         < task["deadline_limits"][1]):
+            dl_col = COLOR["magenta"]
+
+        elif time.time() >= task["deadline_limits"][1]:
+            dl_col = COLOR["red"]
 
         print(re.sub("\n+", "\n", print_fmt.format(
                 ID            = ID,
@@ -117,6 +135,7 @@ def show_tasks(todolist, IDs, old_IDs, *,
                 ID_col        = COLOR["yellow"]  if color else "",
                 num_col       = COLOR["green"]   if color else "",
                 default       = COLOR["default"] if color else "",
+                dl_col        = dl_col,
                 title         = task["title"],
                 bar           = bar(task["progress"], task["limit"], color),
                 progress      = task["progress"],
@@ -124,10 +143,21 @@ def show_tasks(todolist, IDs, old_IDs, *,
                 script        = task["script"],
                 script_args   = task["script_args"],
                 comment       = task["comment"],
+                deadline      = task["deadline"],
+                deadline_p    = deadline_p    if task["deadline"]    else "",
                 script_p      = script_p      if task["script"]      else "",
                 script_args_p = script_args_p if task["script_args"] else "",
-                comment_p     = comment_p     if task["comment"]     else ""
+                comment_p     = comment_p     if task["comment"]     else "",
             )))
+
+
+def time_conv(timef):
+    date_fmt = "%d/%m/%Y"
+
+    if type(timef) is str:
+        return time.mktime(time.strptime(timef, date_fmt))
+
+    return time.strftime(date_fmt, time.struct_time(timef))
 
 
 def bar(progress, limit, color=False, width=30):
@@ -166,14 +196,15 @@ def edit_task(todolist, IDs, scripts_dir, color):
         ID  = new_id()
         IDs = [ID]
         todolist[ID] = {
-                "title"       : "New task",
-                "progress"    : 0,
-                "limit"       : 1,
-                "script"      : "",
-                "script_args" : "",
-                "comment"     : "",
-                "deadline"    : None,
-                "mtime"       : 0}
+                "title"           : "New task",
+                "progress"        : 0,
+                "limit"           : 1,
+                "script"          : "",
+                "script_args"     : "",
+                "comment"         : "",
+                "deadline"        : None,
+                "deadline_limits" : [],
+                "mtime"           : 0}
 
     def set_att(att_name):
         prompt = "{f_col}{f_name} {default_col}[{f_default}]: ".format(
@@ -210,6 +241,25 @@ def edit_task(todolist, IDs, scripts_dir, color):
 
         if task["script"] and '/' not in task["script"]:
             task["script"] = path.join(scripts_dir, task["script"])
+
+        if task["deadline"]:
+            if task["deadline"].count("/") < 1:
+                task["deadline"] += "/" + str(time.localtime().tm_mon)
+            if task["deadline"].count("/") < 2:
+                task["deadline"] += "/" + str(time.localtime().tm_year)
+
+            try:
+                deadline = time.mktime(time.strptime(task["deadline"],
+                                                     "%d/%m/%Y"))
+            except ValueError:
+                print("Bad date format: ignoring")
+                task["deadline"] = None
+                task["deadline_limits"] = []
+                continue
+
+            limit_unit = (deadline - time.time()) / 4
+            task["deadline_limits"] = [time.time() + limit_unit * 2,
+                                       time.time() + limit_unit * 3]
 
 
 def edit_action(todolist, IDs, scripts_dir):
