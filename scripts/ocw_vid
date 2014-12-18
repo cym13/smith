@@ -1,0 +1,27 @@
+#!/bin/sh
+#
+# Open Course Ware
+# This is a script for the SMITH todolist management tool
+# It is called with the following arguments:
+#      the current progress of the task
+#      the limit set for the task
+#      the argument field of the task
+
+PLAYER="vlc"
+LISTURL="$3"
+
+# This builds the url of the video page associated with the lesson
+URL="http://ocw.mit.edu$(curl -s "$LISTURL"                        |\
+                         tr '"' '\n'                               |\
+                         grep "${LISTURL#http://ocw.mit.edu}"      |\
+                         grep -v "rss.xml"                         |\
+                         uniq                                      |\
+                         sed -n "$1p")"
+
+#This is the youtube url of the video
+YTURL="$(wget -O- -q "$URL"    |\
+         tr "'" "\n"           |\
+         grep "youtube.com/v/")"
+
+exec "$PLAYER" "$YTURL"
+
