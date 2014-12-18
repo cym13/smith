@@ -154,11 +154,8 @@ def update_by(todolist, IDs, n):
     for ID in IDs:
         task = todolist[ID]
         task["progress"] += int(n)
-
-        if task["progress"] > task["limit"]:
-            task["progress"] = task["limit"]
-
-        task["mtime"] = time.time()
+        task["progress"] %= task["limit"]
+        task["mtime"]     = time.time()
 
 
 def edit_task(todolist, IDs, scripts_dir, color):
@@ -199,6 +196,12 @@ def edit_task(todolist, IDs, scripts_dir, color):
         task["script_args"] = set_att("script_args")
         task["comment"]     = set_att("comment")
         task["mtime"]       = time.time()
+
+        if task["progress"] < 0:
+            task["progress"] = 0
+
+        if task["limit"] < 0:
+            task["limit"] = 1
 
         if task["script"] and '/' not in task["script"]:
             task["script"] = path.join(scripts_dir, task["script"])
