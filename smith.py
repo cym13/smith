@@ -154,7 +154,10 @@ def update_by(todolist, IDs, n):
     for ID in IDs:
         task = todolist[ID]
         task["progress"] += int(n)
-        task["progress"] %= task["limit"]
+
+        if task["progress"] > task["limit"]:
+            task["progress"] = task["limit"]
+
         task["mtime"]     = time.time()
 
 
