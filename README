@@ -66,6 +66,21 @@ Options:
     -h, --help              Print this help and exit
     -V, --version           Print the version number and exit
 
+Deadlines
+=========
+
+Smith supports deadlines. To add one, use the classic "smith --t" command.
+Quick deadline visualisation is done using the color of the title.
+
+If less than half of the time between the creation of the task and the
+deadline has spent, the title appears white as any other task.
+
+At 75%, it turns magenta.
+
+At 100% and over, it turns red.
+
+You can always see the precise date using "smith -sv".
+
 How to make the magic happen
 ============================
 
@@ -96,6 +111,10 @@ Let's start a new task:
 
     # No comment here
     Comment []:
+
+    # We have no deadline
+    Deadline format: DD[[/MM]/YYYY]
+    Deadline []:
 
 
 The task is created, we can see it:
