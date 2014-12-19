@@ -73,6 +73,13 @@ COLOR = {"black"   : "\033[30m",
 
 def show_tasks(todolist, IDs, old_IDs, *,
                compact=False, verbose=False, color=False):
+    """
+    Display tasks from `todolist' with id in `IDs' or `old_IDs' in case of
+    temporary reference.
+
+    Writes on stdout
+    Returns nothing
+    """
 
     if not compact:
         print_fmt = ( "[{num_col}{num}{default}:{ID_col}{ID}{default}] "
@@ -152,6 +159,9 @@ def show_tasks(todolist, IDs, old_IDs, *,
 
 
 def bar(progress, limit, color=False, width=30):
+    """
+    Returns an ascii bar showing the progress/limit ratio with width `width'
+    """
     ratio      = progress/limit
 
     if color:
@@ -172,6 +182,10 @@ def bar(progress, limit, color=False, width=30):
 
 
 def update_by(todolist, IDs, n):
+    """
+    Updates the progress of tasks from `todolist' with ids `IDs' by `n'
+    Returns nothing
+    """
     for ID in IDs:
         task = todolist[ID]
         task["progress"] += int(n)
@@ -183,6 +197,14 @@ def update_by(todolist, IDs, n):
 
 
 def edit_task(todolist, IDs, scripts_dir, color):
+    """
+    Edit tasks from `todolist' with ids in `IDs'
+    `script_dir' is directory where the scripts are stored
+
+    If IDs is void, a new task is created.
+
+    Returns nothing
+    """
     if not IDs:
         ID  = new_id()
         IDs = [ID]
@@ -254,6 +276,16 @@ def edit_task(todolist, IDs, scripts_dir, color):
 
 
 def edit_action(todolist, IDs, scripts_dir):
+    """
+    For each task in `todolist' with ids `IDs' edits the associated script.
+    The default scripts are stored in `scripts_dir'.
+
+    If no script is set, a new one is created.
+
+    Edition is done using the EDITOR defined in the environnement variable.
+
+    Returns nothing.
+    """
     for ID in IDs:
         if not todolist[ID]["script"]:
             scriptname = input("Select a name for the script: ")
@@ -282,6 +314,14 @@ def edit_action(todolist, IDs, scripts_dir):
 
 
 def do_action(todolist, IDs):
+    """
+    Launches the script of each task in `todolist' with ids in `IDs'
+    passing the progress, the limit and user-defined variable as arguments.
+
+    If the script returns 0, the progress is updated.
+
+    Returns nothing.
+    """
     for ID in IDs:
         todolist[ID]["mtime"] = time.time()
 
@@ -308,11 +348,21 @@ def do_action(todolist, IDs):
 
 
 def new_id():
+    """
+    Returns a new task id based on current time's timestamp.
+    """
     # Yes, this is ugly. Deal with it.
     return hex(int(str(time.time()).replace('.', '')[:-4]))[2:].rjust(11, '0')
 
 
 def import_data(todolist, input_file):
+    """
+    Imports json datas from `input_file' into `todolist'.
+    If the input_file is '-', reads from stdin.
+    if the input_file is a url, transparently import data from it.
+
+    Return nothing.
+    """
     if input_file == '-':
         data = sys.stdin.read()
     elif '://' in input_file and not path.exists(input_file):
@@ -334,6 +384,10 @@ def import_data(todolist, input_file):
 
 
 def mkconfigdir(dir_path):
+    """
+    Makes the default configuration directories and files in `dir_path'
+    Returns nothing.
+    """
     todolist_path = path.join(dir_path, "todolist")
     scripts_path  = path.join(dir_path, "scripts/")
 
@@ -350,6 +404,9 @@ def mkconfigdir(dir_path):
         os.mkdir(scripts_path)
 
 def sorted_IDs(todolist, key):
+    """
+    Returns the `todolist' ids sorted using `key' from max to min
+    """
     result = list(todolist.keys())
     result.sort(key=key)
     result.reverse()
@@ -357,6 +414,12 @@ def sorted_IDs(todolist, key):
 
 
 def select_IDs(todolist, ID_request, old_IDs=[]):
+    """
+    Returns the list of tasks from `todolist' matched by `ID_request'
+
+    `old_IDs' shall contain the list of IDs from a previous command
+    for temporary indexes.
+    """
     if ID_request is None:
         return []
 
