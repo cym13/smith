@@ -13,6 +13,7 @@ answer that mail from your boss and more...
 
 Edition commands use the EDITOR environnement variable.
 
+
 Why would I use smith ?
 =======================
 
@@ -24,6 +25,7 @@ things to do, I need him to help me do it.
 By relying on external programs, Smith allows you to script your way out of
 the midst of unfinished tasks. However, that also means that some wizardry is
 needed in order to unleash the full power of Smith.
+
 
 Documentation
 =============
@@ -66,6 +68,7 @@ Options:
     -h, --help              Print this help and exit
     -V, --version           Print the version number and exit
 
+
 Deadlines
 =========
 
@@ -80,6 +83,7 @@ At 75%, it turns magenta.
 At 100% and over, it turns red.
 
 You can always see the precise date using "smith -sv".
+
 
 How to make the magic happen
 ============================
@@ -199,6 +203,7 @@ And if you are done with this task:
 
 That's it !
 
+
 Dependencies
 ============
 
@@ -206,16 +211,17 @@ This program relies on python3
 
 docopt      You can install it with   pip3 install docopt
 
+
 Files
 =====
 
 Related files are written in ~/.config/smith by default.
 
+
 TODO
 ====
 
-[ ] Add deadline support
-[-] Test every options
+[-] Add example scripts
 
 License
 =======
@@ -224,6 +230,7 @@ This program is under the GPLv3 License.
 
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
+
 
 Contact
 =======
