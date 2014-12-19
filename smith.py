@@ -162,7 +162,7 @@ def bar(progress, limit, color=False, width=30):
     """
     Returns an ascii bar showing the progress/limit ratio with width `width'
     """
-    ratio      = progress/limit
+    ratio = progress/limit
 
     if color:
         if ratio <= 0.33:
@@ -193,10 +193,10 @@ def update_by(todolist, IDs, n):
         if task["progress"] > task["limit"]:
             task["progress"] = task["limit"]
 
-        task["mtime"]     = time.time()
+        task["mtime"] = time.time()
 
 
-def edit_task(todolist, IDs, scripts_dir, color):
+def edit_task(todolist, IDs, scripts_dir, color=False):
     """
     Edit tasks from `todolist' with ids in `IDs'
     `script_dir' is directory where the scripts are stored
@@ -402,6 +402,7 @@ def mkconfigdir(dir_path):
 
     if not path.exists(scripts_path):
         os.mkdir(scripts_path)
+
 
 def sorted_IDs(todolist, key):
     """
