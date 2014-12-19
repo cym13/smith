@@ -26,6 +26,8 @@ By relying on external programs, Smith allows you to script your way out of
 the midst of unfinished tasks. However, that also means that some wizardry is
 needed in order to unleash the full power of Smith.
 
+See smith.ttyrecord using ttyrec to have a glance at smith in action !
+
 
 Documentation
 =============
@@ -222,6 +224,7 @@ TODO
 ====
 
 [-] Add example scripts
+
 
 License
 =======
