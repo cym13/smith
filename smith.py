@@ -97,10 +97,10 @@ def show_tasks(todolist, IDs, old_IDs, *,
                            "{script_args_p}{script_args}\n"
                            "{comment_p}{comment}\n")
 
-            deadline_p    = "Deadline:\t"
-            script_p      = "Script:\t"
-            script_args_p = "Args:\t"
-            comment_p     = "Comment: "
+            deadline_p    = COLOR["magenta"]+ "Deadline"+ COLOR["default"]+":\t"
+            script_p      = COLOR["magenta"]+ "Script"  + COLOR["default"]+":\t"
+            script_args_p = COLOR["magenta"]+ "Args"    + COLOR["default"]+":\t"
+            comment_p     = COLOR["magenta"]+ "Comment" + COLOR["default"]+": "
 
         elif compact:
             print_fmt += ("{script_p}{script}"
