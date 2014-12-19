@@ -116,7 +116,7 @@ def show_tasks(todolist, IDs, old_IDs, *,
         task     = todolist[ID]
         deadline = task["deadline"]
 
-        if deadline is None:
+        if deadline == "":
             dl_col = ""
 
         elif time.time() < task["deadline_limits"][0]:
