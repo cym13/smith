@@ -26,11 +26,11 @@ Options:
     -r, --remove            Remove a task
     -d, --do                Do the action associated with a task
                             and update the progress accordingly
+                            If no script is specified, increments the progress
     -i, --import FILE       Read from a file or a url the tasks to be added
                             If FILE is - then read from stdin
     -o, --export            Prints raw json task data to stdout
-    -u, --update            Increments the task's progress by
-    -U, --update-by N       Updates the task's progress by N
+    -u, --update-by N       Updates the task's progress by N
     -f, --file FILE         Use FILE to load and save the todolist
                             Default is ~/.config/smith/todolist
     -D, --script-dir DIR    Looks in DIR to find scripts
@@ -45,7 +45,7 @@ Options:
 Smith relies on the EDITOR global variable to edit files
 """
 
-VERSION="1.2.0"
+VERSION="1.3.0"
 
 import os
 import re
@@ -326,7 +326,7 @@ def do_action(todolist, IDs):
         todolist[ID]["mtime"] = time.time()
 
         if not path.exists(todolist[ID]["script"]):
-            print("No script for %s: ignoring" % ID, file=sys.stderr)
+            update_by(todolist, IDs, 1)
             continue
 
         elif todolist[ID]["progress"] == todolist[ID]["limit"]:
@@ -525,9 +525,6 @@ def main():
 
     if args["--import"]:
         import_data(todolist, args["--import"])
-
-    if args["--update"]:
-        update_by(todolist, IDs, 1)
 
     if args["--update-by"]:
         try:

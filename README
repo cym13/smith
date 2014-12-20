@@ -32,6 +32,8 @@ See smith.ttyrecord using ttyrec to have a glance at smith in action !
 Documentation
 =============
 
+Smith: Surely the Most Intriguing Todolist Helper
+
 Usage: smith [options] [ID...]
 
 Arguments:
@@ -54,11 +56,11 @@ Options:
     -r, --remove            Remove a task
     -d, --do                Do the action associated with a task
                             and update the progress accordingly
+                            If no script is specified, increments the progress
     -i, --import FILE       Read from a file or a url the tasks to be added
                             If FILE is - then read from stdin
     -o, --export            Prints raw json task data to stdout
-    -u, --update            Increments the task's progress by
-    -U, --update-by N       Updates the task's progress by N
+    -u, --update-by N       Updates the task's progress by N
     -f, --file FILE         Use FILE to load and save the todolist
                             Default is ~/.config/smith/todolist
     -D, --script-dir DIR    Looks in DIR to find scripts
@@ -70,6 +72,7 @@ Options:
     -h, --help              Print this help and exit
     -V, --version           Print the version number and exit
 
+Smith relies on the EDITOR global variable to edit files
 
 Deadlines
 =========
