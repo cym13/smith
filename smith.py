@@ -71,11 +71,10 @@ COLOR = {"black"   : "\033[30m",
          "default" : "\033[00m"}
 
 
-def show_tasks(todolist, IDs, old_IDs, *,
+def show_tasks(todolist, IDs, *,
                compact=False, verbose=False, color=False):
     """
-    Display tasks from `todolist' with id in `IDs' or `old_IDs' in case of
-    temporary reference.
+    Display tasks from `todolist' with id in `IDs'
 
     Writes on stdout
     Returns nothing
@@ -555,7 +554,7 @@ def main():
         print()
 
     if args["--show"] or args["--compact"]:
-        show_tasks(todolist, IDs, old_IDs,
+        show_tasks(todolist, IDs,
                    compact=args["--compact"],
                    verbose=args["--verbose"],
                    color=color)
