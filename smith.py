@@ -309,7 +309,7 @@ def edit_action(todolist, IDs, scripts_dir):
                     ""]))
 
         subprocess.call([os.environ["EDITOR"], todolist[ID]["script"]])
-        os.popen("chmod +x %s" % todolist[ID]["script"])
+        os.Popen(["chmod", "+x", todolist[ID]["script"]])
 
 
 def do_action(todolist, IDs):
@@ -479,12 +479,30 @@ def select_IDs(todolist, ID_request, old_IDs=[]):
     return IDs
 
 
+def create_secure_directory(dirname):
+    try:
+        previous_umask = os.umask(0o077)
+        os.mkdir(dirname)
+        os.umask(previous_umask)
+    except FileExistsError:
+        pass
+
+    os.chdir(dirname)
+
+    dir_stat = os.stat(".")
+
+    if (dir_stat.st_uid != os.getuid() or dir_stat.st_mode & 0o777 != 0o700):
+        print("Wrong directory permissions", file=sys.stderr)
+        exit(1)
+
+
 def main():
     args = docopt(__doc__, version=VERSION)
 
-    tmp_ids_file = "/tmp/smith.tmp"
+    tmp_ids_file = "smith.tmp"
     smith_dir    = path.expanduser("~/.config/smith/")
     list_file    = args["--file"] or path.join(smith_dir, "todolist")
+
     if args["--script-dir"] is None:
         scripts_dir = path.join(smith_dir, "scripts")
     else:
@@ -503,9 +521,13 @@ def main():
                   and x not in ("ID") ]:
         args["--show"] = True
 
+    create_secure_directory("/tmp/smith-%s" % os.getuid())
+
+    tmp_ids_path = path.join("/tmp/smith-%s/%s" % (os.getuid(), tmp_ids_file))
+
     old_IDs = []
-    if path.exists(tmp_ids_file):
-        old_IDs = json.load(open(tmp_ids_file))
+    if path.exists(tmp_ids_path):
+        old_IDs = json.load(open(tmp_ids_path))
 
     if not args["ID"] and args["--remove"]:
         return # Never use default arguments with --remove
@@ -560,7 +582,7 @@ def main():
                    color=color)
 
         # keep track of the last IDs used to propose relative identification
-        json.dump(IDs, open(tmp_ids_file, "w"))
+        json.dump(IDs, open(tmp_ids_path, "w"))
 
     json.dump(todolist, open(list_file, "w"))
 
